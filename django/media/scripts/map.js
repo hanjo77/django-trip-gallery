@@ -53,7 +53,6 @@ $(document).ready(function(){
 				$('.gallery__caption-text').html(this.title);
 				$('.gallery__image-container img').on('load', resizeToImage);
 				activeMarker = this;
-				activeMarker.icon = '/media/img/adsf.png';
 				map.panTo(this.position);
 			});
 
@@ -92,7 +91,11 @@ $(document).ready(function(){
 			changeImage('prev');
 		} else if (event.keyCode === 39) { // right
 			changeImage('next');
+		} else if (event.keyCode === 27) { // escape
+			changeImage('next');
 		}
+		// console.log(event.keyCode);
+		$('[data-button="close"]').trigger('click');
 	});
 
 	function changeImage(direction) {
