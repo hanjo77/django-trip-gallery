@@ -92,10 +92,8 @@ $(document).ready(function(){
 		} else if (event.keyCode === 39) { // right
 			changeImage('next');
 		} else if (event.keyCode === 27) { // escape
-			changeImage('next');
+			$('[data-button="close"]').trigger('click');
 		}
-		// console.log(event.keyCode);
-		$('[data-button="close"]').trigger('click');
 	});
 
 	function changeImage(direction) {
