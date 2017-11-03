@@ -1,7 +1,18 @@
 body, .gallery__desktop {
 	max-width: 100%;
 	max-height: 100%;
+	margin: 0;
+	padding: 0;
 	overflow: hidden;
+	font-family: 'Saira', sans-serif;
+}
+
+h1 {
+	margin-top: 0;
+}
+
+p {
+	margin-bottom: 0;
 }
 
 #gallery__map {
@@ -16,15 +27,17 @@ body, .gallery__desktop {
 	top: 0;
 	left: 0;
 	pointer-events: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .gallery__window {
-	margin: 10%;
+	margin-top: -2em;
 	z-index: 1;
-	top: 10em;
-	left: 10em;
-	height: 60%;
-	pointer-events: bounding-box;
+    display: flex;
+    flex-direction: column;
+    max-width: 80%;
 }
 
 .gallery__content {
@@ -35,6 +48,7 @@ body, .gallery__desktop {
 	box-shadow: 0 0 1em #000;
 	max-height: 100%;
 	overflow: scroll;
+	pointer-events: bounding-box;
 }
 
 .gallery__button {
@@ -50,6 +64,7 @@ body, .gallery__desktop {
     display: block;
     position: relative;
     z-index: 1;
+	pointer-events: bounding-box;
 }
 
 .gallery__button--fullscreen {
@@ -62,25 +77,26 @@ body, .gallery__desktop {
 
 .gallery__button--close {
 	background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDEwMDAgMTAwMCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMTAwMCAxMDAwIiBzdHlsZT0ic3Ryb2tlLXdpZHRoOiA1cHgiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxtZXRhZGF0YT4gU3ZnIFZlY3RvciBJY29ucyA6IGh0dHA6Ly93d3cub25saW5ld2ViZm9udHMuY29tL2ljb24gPC9tZXRhZGF0YT48Zz48cGF0aCBkPSJNOTYyLjIsMTMuM2wyNC40LDI0LjRMMzQuNCw5ODkuOEwxMCw5NjUuNUw5NjIuMiwxMy4zeiIvPjxwYXRoIGQ9Ik0zOS4yLDEwTDk5MCw5NjAuOUw5NjAuOSw5OTBMMTAuMSwzOS4xTDM5LjIsMTBMMzkuMiwxMHoiLz48L2c+PC9zdmc+);
-    float: right;
-    margin-left: -1.5em;
-    margin-top: -1.5em;
+    align-self: flex-end;
+    margin-right: -1.5em;
+    margin-bottom: -1.5em;
 }
 
 .gallery__image-caption .gallery__button {
 	background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iRWJlbmVfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiIHdpZHRoPSI1OTUuMjc5cHgiIGhlaWdodD0iODQxLjg5MXB4IiB2aWV3Qm94PSIwIDAgNTk1LjI3OSA4NDEuODkxIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA1OTUuMjc5IDg0MS44OTEiIHhtbDpzcGFjZT0icHJlc2VydmUiPjxwb2x5bGluZSBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMjAiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgcG9pbnRzPSIyMC4wMDcsNzAzLjQ0NSAzODkuMTQsNDIyLjQ0NSAzODkuMTQsNDIyLjQ0NSAyNi41NzksMTQxLjQ0NSAiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS13aWR0aD0iMjAiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgZD0iTTQ2Ljc4OCwyMDIuMzY1Ii8+PHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2Utd2lkdGg9IjIwIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIGQ9Ik01OTEuNyw0ODQuOTQ1Ii8+PC9zdmc+);
 	background-position: 1em center;
+	position: absolute;
 }
 
 .gallery__button--prev {
 	transform: rotateZ(180deg);
-	float: left;
-    margin-left: calc(-7.5% - 1.5em);
+	align-self: flex-start;
+	left: -1.5em;
 }
 
 .gallery__button--next {
-	float: right;
-    margin-right: calc(-7.5% - 1.5em);
+	align-self: flex-end;
+	right: -1.5em;
 }
 
 .gallery__window--hidden {
@@ -89,6 +105,7 @@ body, .gallery__desktop {
 
 .gallery__image {
 	width: 100%;
+    display: block;
 }
 
 .gallery__image-caption {
@@ -96,19 +113,26 @@ body, .gallery__desktop {
     display: block;
     z-index: 2;
     position: relative;
-    width: calc(73% - 1.5em);
-    margin: -8% 10%;
+    margin: auto 10%;
     border-radius: 1em;
-    padding: 5%;
+    padding: .5em;
     text-align: center;
 	box-shadow: 0 0 1em #000;
+	display: flex;
 }
 
 .gallery__control {
 	display: none;
+    flex-direction: column;
+    min-height: 3em;
 }
 
 .gallery__image-container {
 	padding: 0;
 	background-color: transparent;
+    margin-bottom: -2em;
+}
+
+.gallery__caption-text {
+	margin: auto;
 }

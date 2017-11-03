@@ -1,6 +1,8 @@
 var map,
 	nav = [],
-	markers = [];
+	markers = [],
+	markerCluster,
+	activeMarker;
 
 $(document).ready(function(){
 	//initialise a map
@@ -37,20 +39,30 @@ $(document).ready(function(){
 				position: pos,
 				map: map,
 				url: place,
-				title: title
+				title: title,
+				icon: '/media/img/marker.png'
 			});
 
 			marker.addListener('click', function() {
 				$('.gallery__content').addClass('gallery__image-container');
 				$('.gallery__window').removeClass('gallery__window--hidden');
-				$('.gallery__control').show();
+				$('.gallery__control').css({
+					display: 'flex'
+				});
 				$('.gallery__content').html('<img class="gallery__image" data-id="' + this.index + '" src="' + this.url + '" />');
 				$('.gallery__caption-text').html(this.title);
+				$('.gallery__image-container img').on('load', resizeToImage);
 				// infowindow.open(map, marker);
-				this.map.panTo(this.position);
+				activeMarker = this;
+				activeMarker.icon = '/media/img/adsf.png';
+				map.panTo(this.position);
 			});
 
 			markers.push(marker);
+		});
+
+		markerCluster = new MarkerClusterer(map, markers, {
+			imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
 		});
 
 		//output as a navigation
@@ -106,18 +118,59 @@ $(document).ready(function(){
 		}
 		if (index !== newIndex) {
 			google.maps.event.trigger(markers[newIndex], 'click');
-			console.log($(markers[newIndex]));
+			resizeToImage();
 		}
 	}
 
-	function init(){
-		var latlng = new google.maps.LatLng(38.9284715,-97.5515638);
-		var myOptions = {
-			zoom: 4,
-			center: latlng,
-			mapTypeId: google.maps.MapTypeId.SATELLITE
-		};
+	function init() {
+		var latlng = new google.maps.LatLng(38.9284715,-97.5515638),
+			myOptions = {
+				zoom: 4,
+				center: latlng,
+				mapTypeId: google.maps.MapTypeId.SATELLITE
+			};
+		
+		resizeMap();
+		$(window).on('resize', resizeApp);
 
 		map = new google.maps.Map(document.getElementById('gallery__map'), myOptions);
+	}
+
+	function resizeApp() {
+		resizeMap();
+		resizeToImage();
+	}
+
+	function resizeMap() {
+		$('#gallery__map').css({
+			height: $(window).innerHeight()
+		});
+		if (activeMarker) {
+			map.panTo(activeMarker.position);
+		}
+	}
+
+	function resizeToImage() {
+
+		var $container = $('.gallery__image-container')
+			$image = $container.find('img'),
+			$win = $(window),
+			winWidth = $win.width(),
+			winHeight = $win.height(),
+			percentageWidth = 80,
+			percentageHeight = 80,
+			maxWidth = $win.width() * percentageWidth / 100,
+			maxHeight = $win.height() * percentageHeight / 100,
+			imageWidth = $image.width(),
+			imageHeight = $image.height(),
+			newWidth = (maxHeight * imageWidth) / imageHeight;
+
+		if (newWidth > maxWidth) {
+			newWidth = maxWidth;
+		}
+
+		$('.gallery__window').css({
+			width: newWidth
+		})
 	}
 })
