@@ -52,7 +52,6 @@ $(document).ready(function(){
 				$('.gallery__content').html('<img class="gallery__image" data-id="' + this.index + '" src="' + this.url + '" />');
 				$('.gallery__caption-text').html(this.title);
 				$('.gallery__image-container img').on('load', resizeToImage);
-				// infowindow.open(map, marker);
 				activeMarker = this;
 				activeMarker.icon = '/media/img/adsf.png';
 				map.panTo(this.position);
@@ -118,7 +117,6 @@ $(document).ready(function(){
 		}
 		if (index !== newIndex) {
 			google.maps.event.trigger(markers[newIndex], 'click');
-			resizeToImage();
 		}
 	}
 
