@@ -47,8 +47,7 @@ p {
 	overflow: hidden;
 	box-shadow: 0 0 1em #000;
 	max-height: 100%;
-	overflow: scroll;
-	pointer-events: bounding-box;
+	pointer-events: auto;
 }
 
 .gallery__button {
@@ -64,7 +63,7 @@ p {
     display: block;
     position: relative;
     z-index: 1;
-	pointer-events: bounding-box;
+	pointer-events: auto;
 }
 
 .gallery__button--fullscreen {
