@@ -40,11 +40,9 @@ def import_images(request):
     mediaPath = join(settings.MEDIA_ROOT, path)
     titles = [t for t in listdir(mediaPath) if isdir(join(mediaPath, t))]
     for title in titles:
-        print title
         files = [f for f in listdir(join(mediaPath, title)) if isfile(join(mediaPath, title, f)) and f.lower().find(".jpg") > -1]
 
         for file in files:
-            print file
             newPic = Image(
                 image = join(path, title, file), 
                 title = title

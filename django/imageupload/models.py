@@ -43,7 +43,6 @@ def get_exif_location(exif_data):
     if exif_date:
         try:
             date = datetime.strptime(str(exif_date), '%Y:%m:%d %H:%M:%S').replace(tzinfo=pytz.UTC)
-            print date
         except ValueError:
             print exif_date
 

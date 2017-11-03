@@ -25,16 +25,27 @@ $(document).ready(function(){
 			//output as a navigation
 			html += '<li>' + place + '</li>';
 
-			var pos = new google.maps.LatLng(c[1], c[0]);
+			var pos = new google.maps.LatLng(c[1], c[0]),
+				title = place.split('/');
+
+			title = decodeURIComponent(title[title.length-2])
+				.split(', ')[0]
+				.split(' - ')
+				.join('<br />');
 			var marker = new google.maps.Marker({
 				index: markers.length,
 				position: pos,
 				map: map,
-				title: place
+				url: place,
+				title: title
 			});
 
 			marker.addListener('click', function() {
-				$('.gallery__content').html('<img class="gallery__image" data-id="' + this.index + '" src="' + this.title + '"></div>');
+				$('.gallery__content').addClass('gallery__image-container');
+				$('.gallery__window').removeClass('gallery__window--hidden');
+				$('.gallery__control').show();
+				$('.gallery__content').html('<img class="gallery__image" data-id="' + this.index + '" src="' + this.url + '" />');
+				$('.gallery__caption-text').html(this.title);
 				// infowindow.open(map, marker);
 				this.map.panTo(this.position);
 			});
@@ -45,26 +56,47 @@ $(document).ready(function(){
 		//output as a navigation
 		$('.navigation').append(html);
 
-		//bind clicks on your navigation to scroll to a placemark
+		//bind events for close button
+		$('[data-button="close"]').on('click', function(){
+			$('.gallery__control').hide();
+			$('.gallery__window').addClass('gallery__window--hidden');
+			$('.gallery__content').removeClass('gallery__image-container');
+		});
 
-		$('.navigation li').bind('click', function(){
+		//bind events for prev / next buttons
+		$('.gallery__image-caption .gallery__button').on('click', function(){
+			console.log($(this).data('button'));
+			changeImage($(this).data('button'));
+		});
+
+		//bind clicks on your navigation to scroll to a placemark
+		$('.navigation li').on('click', function(){
 			panToPoint = new google.maps.LatLng(nav[$(this).index()].lng, nav[$(this).index()].lat);
 			map.panTo(panToPoint);
-		})
-
+		});
 	});
 
 	$(document).on('keyup', function(event) {
+		if (event.keyCode === 37) { // left
+			changeImage('prev');
+		} else if (event.keyCode === 39) { // right
+			changeImage('next');
+		}
+	});
+
+	function changeImage(direction) {
 		var index = $('.gallery__image').data('id'),
 			newIndex = index;
-		if (event.keyCode === 37) { // left
+
+		if (direction === 'prev') {
 			if (index > 0) {
 				newIndex = index - 1;
 			}
 			else {
 				newIndex = markers.length-1;
 			}
-		} else if (event.keyCode === 39) { // right
+		}
+		else if (direction === 'next') {
 			if (index < markers.length - 1) {
 				newIndex = index + 1;
 			}
@@ -76,7 +108,7 @@ $(document).ready(function(){
 			google.maps.event.trigger(markers[newIndex], 'click');
 			console.log($(markers[newIndex]));
 		}
-	});
+	}
 
 	function init(){
 		var latlng = new google.maps.LatLng(38.9284715,-97.5515638);
@@ -85,6 +117,7 @@ $(document).ready(function(){
 			center: latlng,
 			mapTypeId: google.maps.MapTypeId.SATELLITE
 		};
+
 		map = new google.maps.Map(document.getElementById('gallery__map'), myOptions);
 	}
 })
