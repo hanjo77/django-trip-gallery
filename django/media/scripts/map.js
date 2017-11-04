@@ -59,9 +59,37 @@ $(document).ready(function(){
 			markers.push(marker);
 		});
 
-		markerCluster = new MarkerClusterer(map, markers, {
-			imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-		});
+		var clusterStyles = [
+			{
+				textColor: 'white',
+				url: '/media/img/cluster-small.png',
+				height: 42,
+				width: 42
+			},
+			{
+				textColor: 'white',
+				url: '/media/img/cluster-medium.png',
+				height: 54,
+				width: 54
+			},
+			{
+				textColor: 'white',
+				url: '/media/img/cluster-large.png',
+				height: 66,
+				width: 66
+			}
+		];
+
+		var mcOptions = {
+		    gridSize: 100,
+		    styles: clusterStyles,
+		    maxZoom: 20
+		};
+		var markerclusterer = new MarkerClusterer(map, markers, mcOptions);
+		
+//		markerCluster = new MarkerClusterer(map, markers, {
+//			imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+//		});
 
 		//output as a navigation
 		$('.navigation').append(html);
