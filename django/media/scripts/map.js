@@ -98,12 +98,13 @@ $(document).ready(function(){
 				enterFullscreen($('.gallery__window')[0]);
 			}
 			else {
-				exitFullscreen($('.gallery__window')[0]);
+				exitFullscreen();
 			}
 		});
 
 		//bind events for close button
 		$('[data-button="close"]').on('click', function(){
+			exitFullscreen();
 			$('.gallery__control').addClass('gallery--hidden');
 			$('.gallery__window').addClass('gallery__window--hidden');
 			$('.gallery__content').removeClass('gallery__image-container');
@@ -129,6 +130,7 @@ $(document).ready(function(){
 			changeImage('next');
 		} else if (event.keyCode === 27) { // escape
 			$('[data-button="close"]').trigger('click');
+			exitFullscreen();
 		}
 	});
 
@@ -188,33 +190,44 @@ $(document).ready(function(){
 	function resizeToImage() {
 
 		var $container = $('.gallery__image-container')
+			isFullScreen = $container.closest('.gallery--fullscreen').length,
 			$image = $container.find('img'),
 			$win = $(window),
 			winWidth = $win.width(),
 			winHeight = $win.height(),
-			percentageWidth = 85,
-			percentageHeight = 85,
+			percentageWidth = (isFullScreen ? 100 : 85),
+			percentageHeight = (isFullScreen ? 100 : 85),
 			maxWidth = $win.width() * percentageWidth / 100,
 			maxHeight = $win.height() * percentageHeight / 100,
 			imageWidth = $image.width(),
 			imageHeight = $image.height(),
-			newWidth = (maxHeight * imageWidth) / imageHeight;
+			newWidth = (maxHeight * imageWidth) / imageHeight,
+			newHeight = (maxWidth * imageHeight) / imageWidth;
 
-		if (!$container.closest('.gallery--fullscreen').length) {
-			if (newWidth > maxWidth) {
-				newWidth = maxWidth;
-			}
+		if (newWidth > maxWidth) {
+			newWidth = maxWidth;
+		}
 
+		if (!isFullScreen) {
 			$('.gallery__window').css({
 				width: newWidth
 			});
 		}
+		else {
+			$('.gallery__window').css({
+				width: 'auto',
+				height: '100%'
+			});			
+		}
+		console.log('resize');
 	}
 
 	function enterFullscreen(element) {
-		$('.gallery__window').addClass('gallery--fullscreen');
-		$('[data-button="fullscreen"]').removeClass('gallery__button--fullscreen');
-		$('[data-button="fullscreen"]').addClass('gallery__button--windowed');
+		if (!$('.gallery__window').hasClass('gallery--fullscreen')) {
+			$('.gallery__window').addClass('gallery--fullscreen');
+			$('[data-button="fullscreen"]').removeClass('gallery__button--fullscreen');
+			$('[data-button="fullscreen"]').addClass('gallery__button--windowed');
+		}
 		if(element.requestFullscreen) {
 			element.requestFullscreen();
 		} 
@@ -239,8 +252,11 @@ $(document).ready(function(){
 		else if(document.webkitExitFullscreen) {
 			document.webkitExitFullscreen();
 		}
-		$('.gallery__window').removeClass('gallery--fullscreen');
-		$('[data-button="fullscreen"]').removeClass('gallery__button--windowed');
-		$('[data-button="fullscreen"]').addClass('gallery__button--fullscreen');
+		if ($('.gallery__window').hasClass('gallery--fullscreen')) {
+			$('.gallery__window').removeClass('gallery--fullscreen');
+			$('[data-button="fullscreen"]').removeClass('gallery__button--windowed');
+			$('[data-button="fullscreen"]').addClass('gallery__button--fullscreen');
+		}
+		resizeToImage();
 	}
 })
