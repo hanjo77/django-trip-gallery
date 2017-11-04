@@ -46,9 +46,7 @@ $(document).ready(function(){
 			marker.addListener('click', function() {
 				$('.gallery__content').addClass('gallery__image-container');
 				$('.gallery__window').removeClass('gallery__window--hidden');
-				$('.gallery__control').css({
-					display: 'flex'
-				});
+				$('.gallery__control').removeClass('gallery--hidden');
 				$('.gallery__content').html('<img class="gallery__image" data-id="' + this.index + '" src="' + this.url + '" />');
 				$('.gallery__caption-text').html(this.title);
 				$('.gallery__image-container img').on('load', resizeToImage);
@@ -81,7 +79,7 @@ $(document).ready(function(){
 		];
 
 		var mcOptions = {
-		    gridSize: 100,
+		    gridSize: 66,
 		    styles: clusterStyles,
 		    maxZoom: 20
 		};
@@ -95,8 +93,18 @@ $(document).ready(function(){
 		$('.navigation').append(html);
 
 		//bind events for close button
+		$('[data-button="fullscreen"]').on('click', function(){
+			if ($(this).hasClass('gallery__button--fullscreen')) {
+				enterFullscreen($('.gallery__window')[0]);
+			}
+			else {
+				exitFullscreen($('.gallery__window')[0]);
+			}
+		});
+
+		//bind events for close button
 		$('[data-button="close"]').on('click', function(){
-			$('.gallery__control').hide();
+			$('.gallery__control').addClass('gallery--hidden');
 			$('.gallery__window').addClass('gallery__window--hidden');
 			$('.gallery__content').removeClass('gallery__image-container');
 		});
@@ -184,20 +192,55 @@ $(document).ready(function(){
 			$win = $(window),
 			winWidth = $win.width(),
 			winHeight = $win.height(),
-			percentageWidth = 80,
-			percentageHeight = 80,
+			percentageWidth = 85,
+			percentageHeight = 85,
 			maxWidth = $win.width() * percentageWidth / 100,
 			maxHeight = $win.height() * percentageHeight / 100,
 			imageWidth = $image.width(),
 			imageHeight = $image.height(),
 			newWidth = (maxHeight * imageWidth) / imageHeight;
 
-		if (newWidth > maxWidth) {
-			newWidth = maxWidth;
-		}
+		if (!$container.closest('.gallery--fullscreen').length) {
+			if (newWidth > maxWidth) {
+				newWidth = maxWidth;
+			}
 
-		$('.gallery__window').css({
-			width: newWidth
-		})
+			$('.gallery__window').css({
+				width: newWidth
+			});
+		}
+	}
+
+	function enterFullscreen(element) {
+		$('.gallery__window').addClass('gallery--fullscreen');
+		$('[data-button="fullscreen"]').removeClass('gallery__button--fullscreen');
+		$('[data-button="fullscreen"]').addClass('gallery__button--windowed');
+		if(element.requestFullscreen) {
+			element.requestFullscreen();
+		} 
+		else if(element.mozRequestFullScreen) {
+			element.mozRequestFullScreen();
+		} 
+		else if(element.webkitRequestFullscreen) {
+			element.webkitRequestFullscreen();
+		} 
+		else if(element.msRequestFullscreen) {
+			element.msRequestFullscreen();
+		}
+	}
+
+	function exitFullscreen() {
+		if(document.exitFullscreen) {
+			document.exitFullscreen();
+		} 
+		else if(document.mozCancelFullScreen) {
+			document.mozCancelFullScreen();
+		} 
+		else if(document.webkitExitFullscreen) {
+			document.webkitExitFullscreen();
+		}
+		$('.gallery__window').removeClass('gallery--fullscreen');
+		$('[data-button="fullscreen"]').removeClass('gallery__button--windowed');
+		$('[data-button="fullscreen"]').addClass('gallery__button--fullscreen');
 	}
 })
