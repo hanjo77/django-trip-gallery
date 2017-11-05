@@ -7,6 +7,11 @@ body, .gallery__desktop {
 	font-family: 'Saira', sans-serif;
 }
 
+select, option {
+	font-family: 'Saira', sans-serif;
+	font-size: 1em;
+}
+
 h1 {
 	margin-top: 0;
 }
@@ -169,6 +174,32 @@ p {
 
 .gallery--fullscreen .gallery__image-caption {
 	bottom: 7em;
+}
+
+.gallery__navigation {
+	width: 10em;
+    position: absolute;
+    top: 3.5em;
+    left: 1.5em;
+    background-color: #ffffff;
+    border-radius: 1em;
+    padding: .5em;
+    text-align: center;
+	box-shadow: 0 0 1em #000;
+	pointer-events: auto;
+}
+
+.gallery__select {
+	width: 10em;
+	margin-top: .5em;
+}
+
+.gallery__select--state {
+	
+}
+
+.gallery__select--city {
+	
 }
 
 .gallery--fullscreen .gallery__button--close,

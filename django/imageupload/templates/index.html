@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>StreetArt overview</title>
+    <title>USA im Zug</title>
     <link href="https://fonts.googleapis.com/css?family=Saira|Saira+Semi+Condensed" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="/media/css/style.css" />
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD_C6GDv2SAhTGc2ijeomtQThYpS761PvU"></script>
@@ -12,6 +12,17 @@
   <body>
     <div id="gallery__map"></div>
     <div class="gallery__desktop">
+      <div class="gallery__navigation">
+        <h3>
+          Fokus ändern
+        </h3>
+        <select class="gallery__select gallery__select--state">
+          <option>Staat:</option>
+        </select>
+        <select class="gallery__select gallery__select--city">
+          <option>Stadt:</option>
+        </select>
+      </div>
       <div class="gallery__window">
         <a class="gallery__button gallery__button--fullscreen gallery__control gallery--hidden" data-button="fullscreen"></a>
         <a class="gallery__button gallery__button--close" data-button="close"></a>
@@ -20,10 +31,16 @@
             USA im Zug
           </h1>
           <p>
-            Im Herbst 2017 durchquerten wir mit dem Zug quer durch die Vereinigten Staaten.
+            Im Herbst 2017 durchquerten wir mit dem Zug die Vereinigten Staaten.
           </p>
           <p>
-            Wähle entweder eine Markierung auf der Karte oder einen Tag im Kalender aus um mehr zu erfahren. 
+            Damit die digitalen Aufnahmen dieser interessanten und vielseitigen Reise der Öffentlichkeit zugänglich sind, haben wir diese Website erstellt. 
+          </p>
+          <p>
+            Klick auf die Punkte um die einzelnen Bilder und Videos zu finden. Sobald ein Bild oder Video geöffnet wurde, kannst du mit Hilfe der "links" und "rechts" Tasten der Tastatur oder den "<" und ">" Knöpfen auf dem Bild-Titel navigieren.
+          </p>
+          <p>
+            Der Knopf links oben schaltet zum Vollbild-Modus, mit dem Knopf rechts oben kehrst du zur Karte zurück.
           </p>
         </div>
         <div class="gallery__image-caption gallery__control gallery--hidden">
@@ -32,7 +49,6 @@
           <span class="gallery__caption-text"></span>
         </div>
       </div>
-      <div class="gallery__navigation"></div>
     </div>
   </body>
 </html>

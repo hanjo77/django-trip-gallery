@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.core.files import File  # you need this somewhere
 from os import listdir
 from os.path import isdir, isfile, join
+from django.db.models import Count, Min, Sum, Avg
 
 from PIL import Image as JpgImage
 from StringIO import StringIO
@@ -17,8 +18,12 @@ import urllib
 import simplejson as json
 import time
 import codecs
+import re
 
 from django.forms.models import model_to_dict
+
+from django.utils.encoding import force_text
+
 
 def index(request):
     return render(request, 'index.html', {
@@ -84,6 +89,38 @@ def import_videos(request):
     # Image.objects.filter(latitude = None).delete()
 
     response = HttpResponse(files)
+    return response
+
+def update_states(request):
+    states = State.objects.all()
+
+    for state in states:
+        my_states = Image.objects.filter(state = state)
+        my_states_latitude = my_states.order_by('latitude')
+        my_states_longitude = my_states.order_by('longitude')
+        state.min_latitude = my_states_latitude.first().latitude
+        state.min_longitude = my_states_longitude.first().longitude
+        state.max_latitude = my_states_latitude.last().latitude
+        state.max_longitude = my_states_longitude.last().longitude
+        state.save()
+
+    response = HttpResponse('done')
+    return response
+
+def update_cities(request):
+    cities = City.objects.all()
+
+    for city in cities:
+        my_cities = Image.objects.filter(city = city)
+        my_cities_latitude = my_cities.order_by('latitude')
+        my_cities_longitude = my_cities.order_by('longitude')
+        city.min_latitude = my_cities_latitude.first().latitude
+        city.min_longitude = my_cities_longitude.first().longitude
+        city.max_latitude = my_cities_latitude.last().latitude
+        city.max_longitude = my_cities_longitude.last().longitude
+        city.save()
+
+    response = HttpResponse('done')
     return response
 
 def update_videos(request):
@@ -169,10 +206,6 @@ def import_locations(request):
                 title = sp["building"]
 
             if "road" in sp:
-                if "house_number" in sp:
-                    a += sp["house_number"] + " "
-                elif a:
-                    a += ", "
                 a += sp["road"]
             elif "footway" in sp:
                 a += sp["footway"]
@@ -233,7 +266,7 @@ def import_locations(request):
             image.save()
 
             output += "<li><h3>" + title + "</h3>" + address.name + "<br />" + city.name + "<br />" + state.name + "</li>"
-            time.sleep(0.2)
+            time.sleep(0.3)
     output += "</ul>"
 
     response = HttpResponse(output)
