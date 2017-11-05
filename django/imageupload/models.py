@@ -63,12 +63,36 @@ class Image(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     date = models.DateTimeField(null=True, blank=True)
+    address = models.ForeignKey('Address', on_delete=models.CASCADE, null=True, blank=True)
+    city = models.ForeignKey('City', on_delete=models.CASCADE, null=True, blank=True)
+    state = models.ForeignKey('State', on_delete=models.CASCADE, null=True, blank=True)
 
     def save(self):
         exif = get_exif_location(exifread.process_file(self.image.file, details=False))
-        self.latitude = exif[0]
-        self.longitude = exif[1]
-        self.date = exif[2]
+        
+        if exif[0]:
+            self.latitude = exif[0]
+            self.longitude = exif[1]
+            self.date = exif[2]
+
         return super(Image, self).save()
+    
+class State(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return '%s' % (self.name)
+
+class City(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return '%s' % (self.name)
+
+class Address(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return '%s' % (self.name)
 
 # Create your models here.

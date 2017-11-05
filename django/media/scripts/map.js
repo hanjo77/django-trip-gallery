@@ -8,46 +8,63 @@ $(document).ready(function(){
 	//initialise a map
 	init();
 
-	$.get('locations.kml', function(data){
-		html = '';
+	$.get('/media/locations.kml', function(data){
 
 		//loop through placemarks tags
 		$(data).find('Placemark').each(function(index, value){
 			//get coordinates and place name
 			coords = $(this).find('coordinates').text();
 			place = $(this).find('name').text();
+			desc = $(this).find('description').text();
 			//store as JSON
-			c = coords.split(',')
+			c = coords.split(',');
+			data = desc.split('|');
 			nav.push({
 				'place': place,
 				'lat': c[0],
 				'lng': c[1]
 			});
 
-			//output as a navigation
-			html += '<li>' + place + '</li>';
-
 			var pos = new google.maps.LatLng(c[1], c[0]),
-				title = place.split('/');
+				title = '';
 
-			title = decodeURIComponent(title[title.length-2])
-				.split(', ')[0]
-				.split(' - ')
-				.join('<br />');
+			for (var i = 0; i < data.length; i++) {
+				var entry = data[i];
+				if (entry && entry !== title) {
+					if (i == 2) {
+						title += '<br />';
+					}
+					else if (title !== '') {
+						title += ', ';
+					}
+					title += entry;
+				}
+			}
+
+			title += '<span class="debug--small">' + decodeURIComponent(place) + '</span>';
+
+			var contentType = (place.indexOf('.jpg') > -1 ? 'photo' : 'video');
+
 			var marker = new google.maps.Marker({
 				index: markers.length,
 				position: pos,
+				contentType: contentType,
 				map: map,
 				url: place,
 				title: title,
-				icon: '/media/img/marker.png'
+				icon: '/media/img/marker-' + contentType + '.png'
 			});
 
 			marker.addListener('click', function() {
 				$('.gallery__content').addClass('gallery__image-container');
 				$('.gallery__window').removeClass('gallery__window--hidden');
 				$('.gallery__control').removeClass('gallery--hidden');
-				$('.gallery__content').html('<img class="gallery__image" data-id="' + this.index + '" src="' + this.url + '" />');
+				if (this.contentType === 'photo') {
+					$('.gallery__content').html('<img class="gallery__image" data-id="' + this.index + '" src="' + this.url + '" />');
+				}
+				else {
+					$('.gallery__content').html('<video controls class="gallery__image gallery__video" data-id="' + this.index + '" src="' + this.url + '" />');
+				}
 				$('.gallery__caption-text').html(this.title);
 				$('.gallery__image-container img').on('load', resizeToImage);
 				activeMarker = this;
@@ -84,13 +101,6 @@ $(document).ready(function(){
 		    maxZoom: 20
 		};
 		var markerclusterer = new MarkerClusterer(map, markers, mcOptions);
-		
-//		markerCluster = new MarkerClusterer(map, markers, {
-//			imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-//		});
-
-		//output as a navigation
-		$('.navigation').append(html);
 
 		//bind events for close button
 		$('[data-button="fullscreen"]').on('click', function(){
@@ -112,7 +122,6 @@ $(document).ready(function(){
 
 		//bind events for prev / next buttons
 		$('.gallery__image-caption .gallery__button').on('click', function(){
-			console.log($(this).data('button'));
 			changeImage($(this).data('button'));
 		});
 
@@ -219,7 +228,6 @@ $(document).ready(function(){
 				height: '100%'
 			});			
 		}
-		console.log('resize');
 	}
 
 	function enterFullscreen(element) {

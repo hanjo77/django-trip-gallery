@@ -141,10 +141,15 @@ p {
 	padding: 0;
 	background-color: rgba(0, 0, 0, .5);
     margin-bottom: -2em;
+    height: 100%;
+}
+
+.gallery__video {
+	height: 100%;
 }
 
 .gallery__caption-text {
-	margin: auto;
+	margin: auto 1.5em;
 }
 
 .gallery--fullscreen {
@@ -157,9 +162,9 @@ p {
 .gallery--fullscreen img {
 	max-width: 100% !important;
 	max-height: 100% !important;
-	margin: 0 auto !important;
+	margin: auto !important;
 	width: auto !important;
-	height: 100% !important;
+	height: auto !important;
 }
 
 .gallery--fullscreen .gallery__image-caption {
@@ -192,4 +197,10 @@ p {
 	min-height: 100% !important;
 	height: 100% !important;
     width: 100% !important;
+    display: flex;
+}
+
+.debug--small {
+	font-size: 8pt;
+	display: block;
 }

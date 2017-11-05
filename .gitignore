@@ -108,3 +108,4 @@ django/media/images
 
 # App relevant
 django/media/upload
+locations.kml
