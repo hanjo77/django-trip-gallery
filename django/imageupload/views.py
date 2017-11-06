@@ -2,8 +2,10 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.files import File  # you need this somewhere
 from os import listdir
+from os import environ
 from os.path import isdir, isfile, join
 from django.db.models import Count, Min, Sum, Avg
+from django.contrib.sites.shortcuts import get_current_site
 
 from PIL import Image as JpgImage
 from StringIO import StringIO
@@ -19,11 +21,11 @@ import simplejson as json
 import time
 import codecs
 import re
+import socket
 
 from django.forms.models import model_to_dict
-
+from django.core import serializers
 from django.utils.encoding import force_text
-
 
 def index(request):
     return render(request, 'index.html', {
@@ -34,12 +36,13 @@ def locations(request):
     kml = simplekml.Kml()
     images = Image.objects.all().order_by('date')
     for image in images:
-        address = image.address.name if image.address else ""
-        city = image.city.name if image.city else ""
-        state = image.state.name if image.state else ""
+        full_url = ''.join(['http://', request.META['HTTP_HOST'], '/api/images/', str(image.pk)])
+        img_string = urllib.urlopen(full_url)
+        data = json.dumps(json.loads(img_string.read()))
+
         kml.newpoint(
-            name = image.image.url,
-            description = image.title + "|" + address + "|" + city + "|" + state,
+            name = image.image.url[1:],
+            description = data,
             coords = [(
                 image.longitude,
                 image.latitude
@@ -168,6 +171,19 @@ def update_videos(request):
                 video.save()
 
     response = HttpResponse(videos)
+    return response
+
+def save_json(request):
+    for name in ['states', 'cities']:
+        full_url = ''.join(['http://', request.META['HTTP_HOST'], '/api/', name])
+        stateString = urllib.urlopen(full_url)
+        data = json.loads(stateString.read())
+
+        file = open(join(settings.MEDIA_ROOT, name + '.json'), 'w')
+        file.write(json.dumps(data))      
+        file.close() 
+
+    response = HttpResponse('done')
     return response
 
 def import_locations(request):

@@ -8,42 +8,35 @@ $(document).ready(function(){
 	//initialise a map
 	init();
 
-	$.get('/media/locations.kml', function(data){
+	$.get('media/locations.kml', function(data){
 
 		//loop through placemarks tags
 		$(data).find('Placemark').each(function(index, value){
 			//get coordinates and place name
 			coords = $(this).find('coordinates').text();
-			place = $(this).find('name').text();
+			url = $(this).find('name').text();
 			desc = $(this).find('description').text();
 			//store as JSON
 			c = coords.split(',');
-			data = desc.split('|');
-			nav.push({
-				'place': place,
-				'lat': c[0],
-				'lng': c[1]
-			});
+			data = JSON.parse(desc);
 
-			var pos = new google.maps.LatLng(c[1], c[0]),
-				title = '';
+			var pos = new google.maps.LatLng(data.latitude, data.longitude),
+				title = data.title;
 
-			for (var i = 0; i < data.length; i++) {
-				var entry = data[i];
-				if (entry && entry !== title) {
-					if (i == 2) {
-						title += '<br />';
-					}
-					else if (title !== '') {
-						title += ', ';
-					}
-					title += entry;
+			if (data.address && data.address.name !== data.title) {
+				if (title !== '') {
+					title += ', ';
 				}
+				title += data.address.name;
 			}
+			if (title !== '') {
+				title += '<br />'
+			}
+			title += data.city.name + ", " + data.state.name;
 
-			title += '<span class="debug--small">' + decodeURIComponent(place) + '</span>';
+			title += '<span class="debug--small">' + decodeURIComponent(url) + '</span>';
 
-			var contentType = (place.indexOf('.jpg') > -1 ? 'photo' : 'video');
+			var contentType = (url.indexOf('.jpg') > -1 ? 'photo' : 'video');
 
 			var marker = new google.maps.Marker({
 				index: markers.length,
@@ -51,9 +44,9 @@ $(document).ready(function(){
 				contentType: contentType,
 				description: title,
 				map: map,
-				url: place,
-				title: data[0],
-				icon: '/media/img/marker-' + contentType + '.png'
+				url: url,
+				title: data.title,
+				icon: 'media/img/marker-' + contentType + '.png'
 			});
 
 			marker.addListener('click', function() {
@@ -79,19 +72,19 @@ $(document).ready(function(){
 		var clusterStyles = [
 			{
 				textColor: 'white',
-				url: '/media/img/cluster-small.png',
+				url: 'media/img/cluster-small.png',
 				height: 42,
 				width: 42
 			},
 			{
 				textColor: 'white',
-				url: '/media/img/cluster-medium.png',
+				url: 'media/img/cluster-medium.png',
 				height: 54,
 				width: 54
 			},
 			{
 				textColor: 'white',
-				url: '/media/img/cluster-large.png',
+				url: 'media/img/cluster-large.png',
 				height: 66,
 				width: 66
 			}
@@ -100,7 +93,7 @@ $(document).ready(function(){
 		var mcOptions = {
 		    gridSize: 66,
 		    styles: clusterStyles,
-		    maxZoom: 20
+		    maxZoom: 19
 		};
 		var markerclusterer = new MarkerClusterer(map, markers, mcOptions);
 
@@ -198,7 +191,7 @@ $(document).ready(function(){
 
 		map = new google.maps.Map(document.getElementById('gallery__map'), myOptions);
 
-		$.getJSON( "/api/states", function( data ) {
+		$.getJSON( "media/states.json", function( data ) {
 			var $stateSelect = $('.gallery__select--state');
 			for (var i = 0; i < data.length; i++) {
 				state = data[i];
@@ -206,7 +199,7 @@ $(document).ready(function(){
 			}
 		});
 
-		$.getJSON( "/api/cities", function( data ) {
+		$.getJSON( "media/cities.json", function( data ) {
 			var $citySelect = $('.gallery__select--city');
 			for (var i = 0; i < data.length; i++) {
 				city = data[i];
@@ -236,12 +229,12 @@ $(document).ready(function(){
 			$win = $(window),
 			winWidth = $win.width(),
 			winHeight = $win.height(),
-			percentageWidth = (isFullScreen ? 100 : 85),
-			percentageHeight = (isFullScreen ? 100 : 85),
+			percentageWidth = (isFullScreen ? 100 : 80),
+			percentageHeight = (isFullScreen ? 100 : 80),
 			maxWidth = $win.width() * percentageWidth / 100,
 			maxHeight = $win.height() * percentageHeight / 100,
-			imageWidth = $image.width(),
-			imageHeight = $image.height(),
+			imageWidth = $image.length ? $image.width() : 1280,
+			imageHeight = $image.length ? $image.height() : 720,
 			newWidth = (maxHeight * imageWidth) / imageHeight,
 			newHeight = (maxWidth * imageHeight) / imageWidth;
 

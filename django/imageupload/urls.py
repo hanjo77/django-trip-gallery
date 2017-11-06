@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^import_locations$', views.import_locations, name='import_locations'),
     url(r'^update_states$', views.update_states, name='update_states'),
     url(r'^update_cities$', views.update_cities, name='update_cities'),
+    url(r'^save_json$', views.save_json, name='save_json'),
     url(r'^locations\.kml$', views.locations, name='locations'),
     url(r'^$', views.index, name='index'),
 ]
