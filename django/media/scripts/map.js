@@ -244,7 +244,8 @@ $(document).ready(function(){
 
 		if (!isFullScreen) {
 			$('.gallery__window').css({
-				width: newWidth
+				width: newWidth,
+				height: 'auto'
 			});
 		}
 		else {
