@@ -20,7 +20,7 @@ $(document).ready(function(){
 			c = coords.split(',');
 			data = JSON.parse(desc);
 
-			var pos = new google.maps.LatLng(data.latitude, data.longitude),
+			var pos = new google.maps.LatLng(data.latitude, data.longitude),
 				title = data.title;
 
 			if (data.address && data.address.name !== data.title) {
@@ -34,7 +34,7 @@ $(document).ready(function(){
 			}
 			title += data.city.name + ", " + data.state.name;
 
-			title += '<span class="debug--small">' + decodeURIComponent(url) + '</span>';
+			// title += '<span class="debug--small">' + decodeURIComponent(url) + '</span>';
 
 			var contentType = (url.indexOf('.jpg') > -1 ? 'photo' : 'video');
 
