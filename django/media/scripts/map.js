@@ -2,7 +2,8 @@ var map,
 	nav = [],
 	markers = [],
 	markerCluster,
-	activeMarker;
+	activeMarker,
+	lastTouch = [];
 
 $(document).ready(function(){
 	//initialise a map
@@ -137,6 +138,28 @@ $(document).ready(function(){
 			bounds.extend(ne);
 			map.fitBounds(bounds);
 			this.selectedIndex = 0;
+		});
+
+		$('.gallery__content').on('touchstart mousedown', function(event) {
+			lastTouch = [event.offsetX, event.offsetY, event.timeStamp];
+		});
+
+		$('.gallery__content').on('touchend mouseup dragend', function(event) {
+			if (lastTouch.length === 3) {
+				var distX = event.offsetX - lastTouch[0],
+					timeDiff = event.timeStamp - lastTouch[2],
+					minSwipe = 100;
+
+				if (timeDiff < 1000) {
+					if (distX < -1 * minSwipe) {
+						$('.gallery__button--prev').trigger('click');
+					}
+					else if (distX > minSwipe) {
+						$('.gallery__button--next').trigger('click');
+					}
+				}
+			}
+			lastTouch = [];
 		});
 	});
 
