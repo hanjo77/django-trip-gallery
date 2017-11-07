@@ -111,3 +111,22 @@ django/media/upload
 django/media/cities.json
 django/media/locations.kml
 django/media/states.json
+
+# Frontend
+
+# Folders
+node_modules
+dist
+.idea
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Logs
+npm-debug.log
