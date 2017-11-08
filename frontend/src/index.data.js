@@ -1,10 +1,10 @@
-let listModule = require('./partials/list.data.js');
+let selectData = require('./partials/select');
+let buttonData = require('./partials/button');
 
 data = {
 	title: 'USA by train',
-	modules: {
-		list: listModule
-	}
+	select: selectData,
+	button: buttonData
 };
 
 module.exports = data;

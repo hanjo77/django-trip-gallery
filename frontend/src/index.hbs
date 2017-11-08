@@ -29,16 +29,12 @@
       <h3>
         Fokus ändern
       </h3>
-      <select class="gallery__select gallery__select--state">
-        <option>Staat:</option>
-      </select>
-      <select class="gallery__select gallery__select--city">
-        <option>Stadt:</option>
-      </select>
+      {{> select type="state" label="Staat" }}
+      {{> select type="city" label="Stadt" }}
     </div>
     <div class="gallery__window">
-      <a class="gallery__button gallery__button--fullscreen gallery__control gallery--hidden" data-button="fullscreen"></a>
-      <a class="gallery__button gallery__button--close" data-button="close"></a>
+      {{> button type="fullscreen" hidden=true }}
+      {{> button type="close" }}
       <div class="gallery__content">
         <h1>
           USA im Zug
@@ -57,8 +53,8 @@
         </p>
       </div>
       <div class="gallery__image-caption gallery__control gallery--hidden">
-        <a class="gallery__button gallery__button--prev" data-button="prev"></a>
-        <a class="gallery__button gallery__button--next" data-button="next"></a>
+	      {{> button type="prev" }}
+	      {{> button type="next" }}
         <span class="gallery__caption-text"></span>
       </div>
     </div>

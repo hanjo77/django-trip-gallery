@@ -38,7 +38,7 @@ gulp.task('server', () => connect.server(connectConfig));
 
 gulp.task('handlebars', () => {
 	return gulp
-		.src('./src/**/*.hbs')
+		.src('./src/*.hbs')
 		.pipe(tap(function(file) {
 			// get data from file with same name
 			var dataFile = gutil.replaceExtension(file.path, '.data.js'),

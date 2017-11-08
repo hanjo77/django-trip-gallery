@@ -166,9 +166,8 @@ GoogleMapsLoader.load((google) => {
 		$(rawData).find('Placemark').each((index, element) =>{
 			//get coordinates and place name
 			let url = $(element).find('name').text(),
-				desc = $(element).find('description').text();
-			console.log($(element));
-			let data = JSON.parse(desc);
+				desc = $(element).find('description').text(),
+				data = JSON.parse(desc);
 
 			let pos = new google.maps.LatLng(data.latitude, data.longitude),
 				title = data.title;

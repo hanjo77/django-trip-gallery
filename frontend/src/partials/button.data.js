@@ -1,5 +1,5 @@
 const data = {
-	list: ['Handlebars', 'SCSS', 'Webpack']
+	type: 'close'
 };
 
 module.exports = data;
