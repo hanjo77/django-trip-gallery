@@ -12,13 +12,16 @@ module.exports = {
 				all: 'src/js/*.js'
 			},
 			img: 'src/img/*.{png,jpg,jpeg,svg,gif}',
-			root: 'src/{*,}.{html,txt,xml,htaccess}'
+			root: 'src/{*,}.{html,txt,xml,htaccess}',
+			htmlBuild: 'dist/*.html'
 		}
 	},
 	dist: {
-		root: 'dist',
-		js: 'dist/js',
-		css: 'dist/css',
-		img: 'dist/img'
+		webRoot: 'dist',
+		root: 'dist/media',
+		js: 'dist/media/js',
+		css: 'dist/media/css',
+		img: 'dist/media/img',
+		templates: '../django/imageupload/templates'
 	}
 };

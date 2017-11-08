@@ -28,7 +28,7 @@ const gulp = require('gulp'),
 	symlink = require('gulp-symlink'),
 	vfs = require('vinyl-fs');
 
-gulp.task('clean', () => del(paths.dist.root));
+gulp.task('clean', () => del(paths.dist.webRoot));
 
 gulp.task('open:browser', () => open('http://localhost:' + connectConfig.port));
 
@@ -55,7 +55,8 @@ gulp.task('handlebars', () => {
 		.pipe(rename({
 			extname: '.html'
 		}))
-		.pipe(gulp.dest('./dist'));
+		.pipe(gulp.dest('./dist'))
+		.pipe(gulp.dest(paths.dist.templates));
 });
 
 gulp.task('sass', () => {
@@ -126,12 +127,12 @@ gulp.task('img', () => {
 		.pipe(connect.reload());
 });
 
-gulp.task('setup-symlink', () => {
+gulp.task('setup-media-symlink', () => {
   return gulp.src('../django/media/')
-    .pipe(symlink('./dist/media'));
+    .pipe(symlink('./dist/media', { force: true }));
 });
 
-gulp.task('copy', () => {
+gulp.task('copy-media', () => {
 	return gulp
 		.src(paths.src.files.root, {
 			base: paths.src.root
@@ -152,5 +153,5 @@ gulp.task('default', cb => {
 });
 
 gulp.task('build', cb => {
-	runSequence(['handlebars', 'sass', 'js:transpile', 'img', 'copy', 'setup-symlink'], cb);
+	runSequence(['handlebars', 'sass', 'js:transpile', 'img', 'setup-media-symlink', 'copy-media'], cb);
 });
