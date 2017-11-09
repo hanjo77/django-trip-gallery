@@ -56,7 +56,8 @@ gulp.task('handlebars', () => {
 			extname: '.html'
 		}))
 		.pipe(gulp.dest('./dist'))
-		.pipe(gulp.dest(paths.dist.templates));
+		.pipe(gulp.dest(paths.dist.templates))
+		.pipe(connect.reload());
 });
 
 gulp.task('sass', () => {

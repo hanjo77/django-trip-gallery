@@ -88,6 +88,7 @@ GoogleMapsLoader.load((google) => {
 	};
 
 	const init = () => {
+		$('.gallery__button--delete').addClass('gallery--hidden');
 		$('.gallery__navigation').hide();
 
 		let latlng = new google.maps.LatLng(38.9284715,-97.5515638),
@@ -159,6 +160,22 @@ GoogleMapsLoader.load((google) => {
 		resizeToImage();
 	};
 
+	const getCookie = (name) => {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        let cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = $.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+	}
+
 	init();
 
 	$.get('media/locations.kml', (rawData) => {
@@ -202,12 +219,21 @@ GoogleMapsLoader.load((google) => {
 				$('.gallery__content').addClass('gallery__image-container');
 				$('.gallery__window').removeClass('gallery__window--hidden');
 				$('.gallery__control').removeClass('gallery--hidden');
-				if (marker.contentType === 'photo') {
-					$('.gallery__content').html('<img class="gallery__image" data-id="' + marker.index + '" src="' + marker.url + '" />');
+
+				if (window.location.href.indexOf(':8000') > -1) {
+					$('.gallery__button--delete').removeClass('gallery--hidden');
 				}
 				else {
-					$('.gallery__content').html('<video controls autoplay class="gallery__image gallery__video" data-id="' + marker.index + '" src="' + marker.url + '" />');
+					$('.gallery__button--delete').addClass('gallery--hidden');
 				}
+
+				if (marker.contentType === 'photo') {
+					$('.gallery__content').html('<img class="gallery__image" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
+				}
+				else {
+					$('.gallery__content').html('<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
+				}
+
 				$('.gallery__caption-text').html(marker.description);
 				$('.gallery__image-container img').on('load', resizeToImage);
 				activeMarker = marker;
@@ -275,6 +301,37 @@ GoogleMapsLoader.load((google) => {
 		$('.navigation li').on('click', (event) => {
 			let panToPoint = new google.maps.LatLng(nav[$(event.currentTarget).index()].lng, nav[$(event.currentTarget).index()].lat);
 			map.panTo(panToPoint);
+		});
+
+		//bind events for delete buttons
+		$('[data-button="delete"]').on('click', (event) => {
+			if (confirm('Willst du dieses Bild wirklich löschen?')) {
+				let csrftoken = getCookie('csrftoken'),
+					id = $(event.currentTarget).closest('.gallery__window').find('.gallery__image').data('pk');
+
+				if (!isNaN(parseInt(id, 10))) {
+					$.ajaxSetup({
+						beforeSend: function(xhr, settings) {
+							xhr.setRequestHeader("X-CSRFToken", csrftoken);
+						}
+					});
+
+					$.ajax({
+						url: '/api/images/' + id + '/',
+						type: 'DELETE',
+						success: function(result) {
+							alert('Bild wurde gelöscht, wechsle zum nächsten...');
+							changeImage('next');
+						},
+						error: function(result) {
+							alert('Bild konnte nicht gelöscht werden: ' + result.message);
+						}
+					});
+				}
+				else {
+					alert('Bild konnte nicht gelöscht werden: ID nicht lesbar.')
+				}
+			}
 		});
 
 		$('.gallery__select').on('change', (event) => {

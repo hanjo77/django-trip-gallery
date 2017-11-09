@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.core.files import File  # you need this somewhere
 from os import listdir
 from os import environ
+from os import remove
 from os.path import isdir, isfile, join
 from django.db.models import Count, Min, Sum, Avg
 from django.contrib.sites.shortcuts import get_current_site
@@ -72,6 +73,25 @@ def import_images(request):
     Image.objects.filter(latitude = None).delete()
 
     response = HttpResponse(files)
+    return response
+
+def cleanup_images(request):
+    path = "images"
+    response_text = ""
+    mediaPath = join(settings.MEDIA_ROOT, path)
+    titles = [t for t in listdir(mediaPath) if isdir(join(mediaPath, t))]
+    for title in titles:
+        files = [f for f in listdir(join(mediaPath, title)) if isfile(join(mediaPath, title, f))]
+
+        for file in files:
+            image = Image.objects.filter(image__icontains = file)
+            if len(image) < 1:
+                try:
+                    remove(join(mediaPath, title, file))
+                except:
+                    response_text = response_text + join(path, title, file) + "<br />"
+
+    response = HttpResponse(response_text)
     return response
 
 def import_videos(request):
