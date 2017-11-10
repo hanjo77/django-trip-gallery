@@ -1,5 +1,9 @@
 $module-title: 'gallery';
 
+html, body {
+	height: 100%;
+}
+
 body,
 .#{$module-title}__desktop {
 	max-width: 100%;
@@ -25,7 +29,7 @@ p {
 }
 
 ##{$module-title}__map {
-	height: 800px;
+	height: 100%;
 	width: 100%;
 }
 
@@ -48,9 +52,12 @@ p {
 
 	&__window {
 		z-index: 1;
-	    display: flex;
-	    flex-direction: column;
-	    max-width: 85%;
+		display: flex;
+		flex-direction: column;
+		width: fit-content;
+		height: fit-content;
+		max-width: 90%;
+		max-height: 90%;
 	}
 
 	&__content {
@@ -59,8 +66,37 @@ p {
 		border-radius: 1em;
 		overflow: hidden;
 		box-shadow: 0 0 1em #000;
+		width: fit-content;
+		height: fit-content;
+		max-width: 100%;
 		max-height: 100%;
 		pointer-events: auto;
+	}
+
+	&__image {
+		max-width: 100%;
+		max-height: 100%;
+		display: block;
+		margin: auto;
+
+		&-container {
+			padding: 0;
+			background-color: rgba(0, 0, 0, .5);
+		  margin-bottom: -2em;
+		}
+
+		&-caption {
+			background-color: #ffffff;
+			display: block;
+			z-index: 2;
+			position: relative;
+			margin: auto 10%;
+			border-radius: 1em;
+			padding: .5em;
+			text-align: center;
+			box-shadow: 0 0 1em #000;
+			display: flex;
+		}
 	}
 
 	&__button {
@@ -128,31 +164,6 @@ p {
 		display: none;
 	}
 
-	&__image {
-		width: 100%;
-		display: block;
-
-		&-caption {
-			background-color: #ffffff;
-			display: block;
-			z-index: 2;
-			position: relative;
-			margin: auto 10%;
-			border-radius: 1em;
-			padding: .5em;
-			text-align: center;
-			box-shadow: 0 0 1em #000;
-			display: flex;
-		}
-
-		&-container {
-			padding: 0;
-			background-color: rgba(0, 0, 0, .5);
-		    margin-bottom: -2em;
-		    height: auto;
-		}
-	}
-
 	&__control {
 		display: flex;
 		flex-direction: column;
@@ -165,58 +176,47 @@ p {
 		}
 	}
 
-	&__video {
-		height: 100%;
-	}
-
 	&__caption-text {
 		margin: auto;
 	}
 
 	&--fullscreen {
-		max-width: 100% !important;
-		max-height: 100% !important;
-		margin: 0 !important;
-		padding: 0 !important;
+		width: 100%;
+		height: 100%;
+		max-width: 100%;
+		max-height: 100%;
+		margin: 0;
+		padding: 0;
 
-		& img {
-			max-width: 100% !important;
-			max-height: 100% !important;
-			margin: auto !important;
-			width: auto !important;
-			height: auto !important;
-		}
-
-		& .#{$module-title}__image-caption {
+		.#{$module-title}__image-caption {
 			bottom: 7em;
 		}
 
-		& .#{$module-title}__button--close,
-		& .#{$module-title}__button--fullscreen,
-		& .#{$module-title}__button--windowed {
+		.#{$module-title}__button--close,
+		.#{$module-title}__button--fullscreen,
+		.#{$module-title}__button--windowed {
 			position: absolute;
 			top: 1.5em;
 		}
 
-		& .#{$module-title}__button--fullscreen,
-		& .#{$module-title}__button--windowed {
+		.#{$module-title}__button--fullscreen,
+		.#{$module-title}__button--windowed {
 			left: 1.5em;
 			margin-left: 0;
 		}
 
-		& .#{$module-title}__button--close {
+		.#{$module-title}__button--close {
 			right: 1.5em;
 			margin-right: 0;
 		}
 
-		& .#{$module-title}__image-container {
-			margin: 0 !important;
-			overflow: inherit !important;
+		.#{$module-title}__image-container {
+			margin: 0;
 			border-radius: 0;
 			background-color: #000000;
-			min-height: 100% !important;
-			height: 100% !important;
-			width: 100% !important;
+			min-height: 100%;
+			height: 100%;
+			width: 100%;
 			display: flex;
 		}
 	}

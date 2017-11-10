@@ -14,54 +14,6 @@ let map,
 let GoogleMapsLoader = require('google-maps');
 GoogleMapsLoader.KEY = 'AIzaSyD_C6GDv2SAhTGc2ijeomtQThYpS761PvU';
 
-const resizeMap = () => {
-	$('#gallery__map').css({
-		height: $(window).innerHeight()
-	});
-	if (activeMarker) {
-		map.panTo(activeMarker.position);
-	}
-};
-
-const resizeToImage = () => {
-	let $container = $('.gallery__image-container'),
-		isFullScreen = $container.closest('.gallery--fullscreen').length,
-		$image = $container.find('img'),
-		$win = $(window),
-		winWidth = $win.width(),
-		winHeight = $win.height(),
-		scalePercentage = 90,
-		maxWidth = winWidth * scalePercentage / 100,
-		maxHeight = winHeight * scalePercentage / 100,
-		imageWidth = ($image.length > 0 ? $image.width() : 1280), // for videos, have fixed width
-		imageHeight = ($image.length > 0 ? $image.height() : 720), // for videos, have fixed height
-		newWidth = maxWidth,
-		newHeight = (newWidth * imageHeight) / imageWidth;
-
-	if (newHeight > winHeight) {
-		newHeight = maxHeight;
-		newWidth = (newHeight * imageWidth) / imageHeight;
-	}
-
-	if (isFullScreen) {
-		$('.gallery__window').css({
-			width: '100%',
-			height: '100%'
-		});
-	}
-	else {
-		$('.gallery__window').css({
-			width: newWidth + 'px',
-			height: newHeight + 'px'
-		});
-	}
-};
-
-const resizeApp = () => {
-	resizeMap();
-	resizeToImage();
-};
-
 const fillSelect = (type, url) => {
 	$.getJSON(url, function(data) {
 		let $select = $('.gallery__select--' + type),
@@ -151,11 +103,10 @@ const addMarkers = () => {
 				}
 				else {
 					$('.gallery__content').html('<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
-					resizeToImage();
 				}
 
 				$('.gallery__caption-text').html(marker.description);
-				$('.gallery__image-container img').on('load', resizeToImage);
+
 				activeMarker = marker;
 				map.panTo(marker.position);
 				$('.gallery__navigation').hide();
@@ -178,9 +129,6 @@ const init = () => {
 			center: latlng,
 			mapTypeId: google.maps.MapTypeId.SATELLITE // HYBRID
 		};
-
-	resizeMap();
-	$(window).on('resize', resizeApp);
 
 	map = new google.maps.Map(document.getElementById('gallery__map'), myOptions);
 
@@ -244,7 +192,6 @@ const exitFullscreen = () => {
 		$('[data-button="fullscreen"]').removeClass('gallery__button--windowed');
 		$('[data-button="fullscreen"]').addClass('gallery__button--fullscreen');
 	}
-	resizeToImage();
 };
 
 const getCookie = (name) => {
@@ -280,6 +227,7 @@ $('[data-button="close"]').on('click', () =>{
 	$('.gallery__window').addClass('gallery__window--hidden');
 	$('.gallery__content').removeClass('gallery__image-container');
 	$('.gallery__navigation').show();
+	document.getElementById('gallery__map').focus();
 });
 
 //bind events for prev / next buttons
@@ -367,13 +315,23 @@ $('.gallery__content').on('touchend mouseup dragend', (event) => {
 });
 
 $(document).on('keyup', (event) => {
-	if (event.keyCode === 37) { // left
-		changeImage('prev');
-	} else if (event.keyCode === 39) { // right
-		changeImage('next');
-	} else if (event.keyCode === 27) { // escape
-		$('[data-button="close"]').trigger('click');
-		exitFullscreen();
+	if ($('.gallery__window--hidden').length <= 0) {
+		if (event.keyCode === 37) { // left
+			changeImage('prev');
+		} else if (event.keyCode === 39) { // right
+			changeImage('next');
+		} else if (event.keyCode === 27) { // escape
+			$('[data-button="close"]').trigger('click');
+			exitFullscreen();
+		}
+	}
+});
+
+$(document).on('keydown', (event) => {
+	if ($('.gallery__window--hidden').length <= 0) {
+		if (event.keyCode in [37, 39]) { // left or right
+			event.preventDefault();
+		}
 	}
 });
 
