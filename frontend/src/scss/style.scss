@@ -92,10 +92,14 @@ p {
 			position: relative;
 			margin: auto 10%;
 			border-radius: 1em;
-			padding: .5em;
+			padding: .5em 2em;
 			text-align: center;
 			box-shadow: 0 0 1em #000;
 			display: flex;
+
+			&-text {
+				margin: auto;
+			}
 		}
 	}
 
@@ -174,10 +178,6 @@ p {
 		&--fadeout {
 			opacity: 0;
 		}
-	}
-
-	&__caption-text {
-		margin: auto;
 	}
 
 	&--fullscreen {

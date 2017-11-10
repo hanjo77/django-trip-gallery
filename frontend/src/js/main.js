@@ -1,12 +1,10 @@
 'use strict';
 
 let map,
-	nav = [],
 	markers = [],
 	markerclusterer,
 	activeMarker,
 	lastTouch = [],
-	$ = require('jquery'),
 	MarkerClusterer = require('node-js-marker-clusterer'),
 	google = null,
 	timeoutControlFade;
@@ -15,14 +13,22 @@ let GoogleMapsLoader = require('google-maps');
 GoogleMapsLoader.KEY = 'AIzaSyD_C6GDv2SAhTGc2ijeomtQThYpS761PvU';
 
 const fillSelect = (type, url) => {
-	$.getJSON(url, function(data) {
-		let $select = $('.gallery__select--' + type),
+	let xhr = new XMLHttpRequest();
+	xhr.onload = () => {
+		let data = JSON.parse(xhr.responseText);
+		let select = document.querySelector('.gallery__select--' + type),
 			option;
 		for (let i = 0; i < data.length; i++) {
 			option = data[i];
-			$select.append('<option value="' + JSON.stringify(option).split('\"').join('\'') + '">' + option.name + '</option>');
+			select.insertAdjacentHTML('beforeend', '<option value="' + JSON.stringify(option).split('\"').join('\'') + '">' + option.name + '</option>');
 		}
-	});
+	};
+	xhr.onerror = () => {
+	  console.log('Error while getting ' + url + '.');
+	};
+	xhr.open("GET", url);
+	xhr.responseType = 'text';
+	xhr.send();
 };
 
 const addMarkerCluster = () => {
@@ -56,13 +62,97 @@ const addMarkerCluster = () => {
 	markerclusterer = new MarkerClusterer(map, markers, mcOptions);
 };
 
+const changeImage = (direction) => {
+	let index = parseInt(document.querySelector('.gallery__image').dataset.id, 10),
+		newIndex = index;
+
+		console.log(newIndex);
+	if (direction === 'prev') {
+		newIndex = (index > 0 ? index - 1 : markers.length-1);
+	}
+	else if (direction === 'next') {
+		newIndex = (index < markers.length - 1 ? index + 1 : 0);
+	}
+
+	if (index !== newIndex) {
+		google.maps.event.trigger(markers[newIndex], 'click');
+	}
+};
+
+const imageTouchStart = (event) => {
+	let timeStamp = event.timeStamp;
+	if (event.changedTouches.length > 0) {
+		event = event.changedTouches[0];
+	}
+
+	lastTouch = [event.pageX, event.pageY, timeStamp];
+};
+
+const imageTouchEnd = (event) => {
+	if (lastTouch.length === 3) {
+		let timeStamp = event.timeStamp;
+		if (event.changedTouches.length > 0) {
+			event = event.changedTouches[0];
+		}
+
+		let distX = event.pageX - lastTouch[0],
+			timeDiff = timeStamp - lastTouch[2],
+			minSwipe = 100;
+
+		if (timeDiff < 1000) {
+			if (distX < -1 * minSwipe) {
+				changeImage('next');
+			}
+			else if (distX > minSwipe) {
+				changeImage('prev');
+			}
+		}
+	}
+	lastTouch = [];
+};
+
+const addMarkerClick = (marker, data) => {
+	marker.addListener('click', () => {
+		document.querySelector('.gallery__content').classList.add('gallery__image-container');
+		document.querySelector('.gallery__window').classList.remove('gallery__window--hidden');
+		document.querySelectorAll('.gallery__control').forEach((ctrl) => {
+			ctrl.classList.remove('gallery--hidden');
+		});
+
+		if (window.location.href.indexOf(':8000') > -1) {
+			document.querySelector('.gallery__button--delete').classList.remove('gallery--hidden');
+		}
+		else {
+			document.querySelector('.gallery__button--delete').classList.add('gallery--hidden');
+		}
+
+		if (marker.contentType === 'photo') {
+			document.querySelector('.gallery__content').innerHTML = '<img class="gallery__image" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
+		}
+		else {
+			document.querySelector('.gallery__content').innerHTML = '<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
+		}
+
+		let galleryImage = document.querySelector('.gallery__image');
+		galleryImage.addEventListener('touchstart', imageTouchStart);
+		galleryImage.addEventListener('touchend', imageTouchEnd);
+
+		document.querySelector('.gallery__image-caption-text').innerHTML = marker.description;
+
+		activeMarker = marker;
+		map.panTo(marker.position);
+		document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
+	});
+};
+
 const addMarkers = () => {
-	$.get('media/locations.kml', (rawData) => {
-		//loop through placemarks tags
-		$(rawData).find('Placemark').each((index, element) =>{
+	let xhr = new XMLHttpRequest();
+	xhr.onload = () => {
+		let placemarks = xhr.responseXML.documentElement.getElementsByTagName("Placemark");
+		[].forEach.call(placemarks, (element) =>{
 			//get coordinates and place name
-			let url = $(element).find('name').text(),
-				desc = $(element).find('description').text(),
+			let url = element.getElementsByTagName('name')[0].textContent,
+				desc = element.getElementsByTagName('description')[0].textContent,
 				data = JSON.parse(desc);
 
 			let pos = new google.maps.LatLng(data.latitude, data.longitude),
@@ -86,42 +176,24 @@ const addMarkers = () => {
 				icon: 'media/img/marker-' + contentType + '.png'
 			});
 
-			marker.addListener('click', () => {
-				$('.gallery__content').addClass('gallery__image-container');
-				$('.gallery__window').removeClass('gallery__window--hidden');
-				$('.gallery__control').removeClass('gallery--hidden');
-
-				if (window.location.href.indexOf(':8000') > -1) {
-					$('.gallery__button--delete').removeClass('gallery--hidden');
-				}
-				else {
-					$('.gallery__button--delete').addClass('gallery--hidden');
-				}
-
-				if (marker.contentType === 'photo') {
-					$('.gallery__content').html('<img class="gallery__image" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
-				}
-				else {
-					$('.gallery__content').html('<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
-				}
-
-				$('.gallery__caption-text').html(marker.description);
-
-				activeMarker = marker;
-				map.panTo(marker.position);
-				$('.gallery__navigation').hide();
-			});
+			addMarkerClick(marker, data);
 
 			markers.push(marker);
 		});
 		addMarkerCluster();
-	});
+	};
+	xhr.onerror = () => {
+	  console.log('Error while getting media/locations.kml.');
+	};
+	xhr.open('GET', 'media/locations.kml');
+	xhr.responseType = 'document';
+	xhr.send();
 };
 
 //initialise a map
 const init = () => {
-	$('.gallery__button--delete').addClass('gallery--hidden');
-	$('.gallery__navigation').hide();
+	document.querySelector('.gallery__button--delete').classList.add('gallery--hidden');
+	document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
 
 	let latlng = new google.maps.LatLng(38.9284715,-97.5515638),
 		myOptions = {
@@ -142,26 +214,11 @@ GoogleMapsLoader.load((g) => {
 	init();
 });
 
-const changeImage = (direction) => {
-	let index = $('.gallery__image').data('id'),
-		newIndex = index;
-
-	if (direction === 'prev') {
-		newIndex = (index > 0 ? index - 1 : markers.length-1);
-	}
-	else if (direction === 'next') {
-		newIndex = (index < markers.length - 1 ? index + 1 : 0);
-	}
-	if (index !== newIndex) {
-		google.maps.event.trigger(markers[newIndex], 'click');
-	}
-};
-
 const enterFullscreen = (element) => {
-	if (!$('.gallery__window').hasClass('gallery--fullscreen')) {
-		$('.gallery__window').addClass('gallery--fullscreen');
-		$('[data-button="fullscreen"]').removeClass('gallery__button--fullscreen');
-		$('[data-button="fullscreen"]').addClass('gallery__button--windowed');
+	if (!document.querySelector('.gallery__window').classList.contains('gallery--fullscreen')) {
+		document.querySelector('.gallery__window').classList.add('gallery--fullscreen');
+		document.querySelector('[data-button="fullscreen"]').classList.remove('gallery__button--fullscreen');
+		document.querySelector('[data-button="fullscreen"]').classList.add('gallery__button--windowed');
 	}
 	if(element.requestFullscreen) {
 		element.requestFullscreen();
@@ -187,10 +244,10 @@ const exitFullscreen = () => {
 	else if(document.webkitExitFullscreen) {
 		document.webkitExitFullscreen();
 	}
-	if ($('.gallery__window').hasClass('gallery--fullscreen')) {
-		$('.gallery__window').removeClass('gallery--fullscreen');
-		$('[data-button="fullscreen"]').removeClass('gallery__button--windowed');
-		$('[data-button="fullscreen"]').addClass('gallery__button--fullscreen');
+	if (document.querySelector('.gallery__window').classList.contains('gallery--fullscreen')) {
+		document.querySelector('.gallery__window').classList.remove('gallery--fullscreen');
+		document.querySelector('[data-button="fullscreen"]').classList.remove('gallery__button--windowed');
+		document.querySelector('[data-button="fullscreen"]').classList.add('gallery__button--fullscreen');
 	}
 };
 
@@ -199,7 +256,7 @@ const getCookie = (name) => {
 	if (document.cookie && document.cookie !== '') {
 		let cookies = document.cookie.split(';');
 		for (let i = 0; i < cookies.length; i++) {
-			let cookie = $.trim(cookies[i]);
+			let cookie = cookies[i].trim();
 			// Does this cookie string begin with the name we want?
 			if (cookie.substring(0, name.length + 1) === (name + '=')) {
 				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
@@ -211,9 +268,9 @@ const getCookie = (name) => {
 };
 
 //bind events for close button
-$('[data-button="fullscreen"]').on('click', (event) => {
-	if ($(event.currentTarget).hasClass('gallery__button--fullscreen')) {
-		enterFullscreen($('.gallery__window')[0]);
+document.querySelector('[data-button="fullscreen"]').addEventListener('click', (event) => {
+	if (event.currentTarget.classList.contains('gallery__button--fullscreen')) {
+		enterFullscreen(document.querySelector('.gallery__window'));
 	}
 	else {
 		exitFullscreen();
@@ -221,124 +278,86 @@ $('[data-button="fullscreen"]').on('click', (event) => {
 });
 
 //bind events for close button
-$('[data-button="close"]').on('click', () =>{
+document.querySelector('[data-button="close"]').addEventListener('click', () =>{
 	exitFullscreen();
-	$('.gallery__control').addClass('gallery--hidden');
-	$('.gallery__window').addClass('gallery__window--hidden');
-	$('.gallery__content').removeClass('gallery__image-container');
-	$('.gallery__navigation').show();
+	document.querySelector('.gallery__control').classList.add('gallery--hidden');
+	document.querySelector('.gallery__window').classList.add('gallery__window--hidden');
+	document.querySelector('.gallery__content').classList.remove('gallery__image-container');
+	document.querySelector('.gallery__navigation').classList.remove('gallery--hidden');
 	document.getElementById('gallery__map').focus();
 });
 
 //bind events for prev / next buttons
-$('.gallery__image-caption .gallery__button').on('click', (event) => {
-	changeImage($(event.currentTarget).data('button'));
-});
-
-//bind clicks on your navigation to scroll to a placemark
-$('.navigation li').on('click', (event) => {
-	let panToPoint = new google.maps.LatLng(nav[$(event.currentTarget).index()].lng, nav[$(event.currentTarget).index()].lat);
-	map.panTo(panToPoint);
+document.querySelectorAll('.gallery__image-caption .gallery__button').forEach((button) => {
+	button.addEventListener('click', (event) => {
+		changeImage(event.currentTarget.dataset.button);
+	});
 });
 
 //bind events for delete buttons
-$('[data-button="delete"]').on('click', (event) => {
+document.querySelector('[data-button="delete"]').addEventListener('click', () => {
 	if (window.confirm('Willst du dieses Bild wirklich löschen?')) {
 		let csrftoken = getCookie('csrftoken'),
-			id = $(event.currentTarget).closest('.gallery__window').find('.gallery__image').data('pk');
+			id = document.querySelector('.gallery__window .gallery__image').dataset.pk;
 
 		if (!isNaN(parseInt(id, 10))) {
-			$.ajaxSetup({
-				beforeSend: function(xhr) {
-					xhr.setRequestHeader("X-CSRFToken", csrftoken);
-				}
-			});
-
-			$.ajax({
-				url: '/api/images/' + id + '/',
-				type: 'DELETE',
-				success: function() {
-					window.alert('Bild ' + id + ' wurde gelöscht, wechsle zum nächsten...');
-					changeImage('next');
-				},
-				error: function(result) {
-					window.alert('Bild konnte nicht gelöscht werden: ' + result.message);
-				}
-			});
+			let xhr = new XMLHttpRequest();
+			xhr.onload = () => {
+				window.alert('Bild ' + id + ' wurde gelöscht, wechsle zum nächsten...');
+				changeImage('next');
+			};
+			xhr.onerror = () => {
+				window.alert('Bild konnte nicht gelöscht werden: ID nicht lesbar.');
+			};
+			xhr.open('DELETE', '/api/images/' + id + '/');
+			xhr.responseType = "text";
+			xhr.setRequestHeader("X-CSRFToken", csrftoken);
+			xhr.send();
 		}
 		else {
-			window.alert('Bild konnte nicht gelöscht werden: ID nicht lesbar.');
 		}
 	}
 });
 
-$('.gallery__select').on('change', (event) => {
-	let data = JSON.parse(event.currentTarget.options[event.currentTarget.selectedIndex].value.split('\'').join('\"'));
-	let sw = new google.maps.LatLng(data.max_latitude, data.max_longitude);
-	let ne = new google.maps.LatLng(data.min_latitude, data.min_longitude);
-	new google.maps.LatLngBounds();
-	let bounds = new google.maps.LatLngBounds();
-	bounds.extend(sw);
-	bounds.extend(ne);
-	map.fitBounds(bounds);
-	event.currentTarget.selectedIndex = 0;
+document.querySelectorAll('.gallery__select').forEach((select) => {
+	select.addEventListener('change', (event) => {
+		let data = JSON.parse(event.currentTarget.options[event.currentTarget.selectedIndex].value.split('\'').join('\"'));
+		let sw = new google.maps.LatLng(data.max_latitude, data.max_longitude);
+		let ne = new google.maps.LatLng(data.min_latitude, data.min_longitude);
+		new google.maps.LatLngBounds();
+		let bounds = new google.maps.LatLngBounds();
+		bounds.extend(sw);
+		bounds.extend(ne);
+		map.fitBounds(bounds);
+		event.currentTarget.selectedIndex = 0;
+	});
 });
 
-$('.gallery__content').on('touchstart mousedown', (event) => {
-	if (event.originalEvent) {
-		event = event.originalEvent;
-	}
-
-	lastTouch = [event.pageX, event.pageY, event.timeStamp];
-});
-
-$('.gallery__content').on('touchend mouseup dragend', (event) => {
-	if (lastTouch.length === 3) {
-		if (event.originalEvent) {
-			event = event.originalEvent;
-		}
-
-		let distX = event.pageX - lastTouch[0],
-			timeDiff = event.timeStamp - lastTouch[2],
-			minSwipe = 100;
-
-		if (timeDiff < 1000) {
-			if (distX < -1 * minSwipe) {
-				$('.gallery__button--next').trigger('click');
-			}
-			else if (distX > minSwipe) {
-				$('.gallery__button--prev').trigger('click');
-			}
-		}
-	}
-	lastTouch = [];
-});
-
-$(document).on('keyup', (event) => {
-	if ($('.gallery__window--hidden').length <= 0) {
+document.addEventListener('keyup', (event) => {
+	if (document.querySelectorAll('.gallery__window--hidden').length <= 0) {
 		if (event.keyCode === 37) { // left
 			changeImage('prev');
 		} else if (event.keyCode === 39) { // right
 			changeImage('next');
 		} else if (event.keyCode === 27) { // escape
-			$('[data-button="close"]').trigger('click');
+			document.querySelector('[data-button="close"]').dispatchEvent(new Event('click'));
 			exitFullscreen();
 		}
 	}
 });
 
-$(document).on('keydown', (event) => {
-	if ($('.gallery__window--hidden').length <= 0) {
+document.addEventListener('keydown', (event) => {
+	if (document.querySelectorAll('.gallery__window--hidden').length <= 0) {
 		if (event.keyCode in [37, 39]) { // left or right
 			event.preventDefault();
 		}
 	}
 });
 
-$(document).on('mousemove keyup click', () => {
+document.addEventListener('mousemove keyup click', () => {
 	window.clearTimeout(timeoutControlFade);
-	$('.gallery__control').removeClass('gallery__control--fadeout');
+	document.querySelector('.gallery__control').classList.remove('gallery__control--fadeout');
 	timeoutControlFade = window.setTimeout(() => {
-		$('.gallery__control').addClass('gallery__control--fadeout');
+		document.querySelector('.gallery__control').classList.add('gallery__control--fadeout');
 	}, 3000);
 });

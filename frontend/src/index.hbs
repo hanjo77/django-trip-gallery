@@ -23,43 +23,43 @@
 </head>
 
 <body>
-  <div id="gallery__map" tabindex="1"></div>
-  <div class="gallery__desktop">
-    <div class="gallery__navigation" tabindex="1">
-      <h3>
-        Fokus ändern
-      </h3>
-      {{> select type="state" label="Staat" }}
-      {{> select type="city" label="Stadt" }}
-    </div>
-    <div class="gallery__window">
-      {{> button type="fullscreen" hidden=true }}
-      {{> button type="delete" }}
-      {{> button type="close" }}
-      <div class="gallery__content">
-        <h1>
-          USA im Zug
-        </h1>
-        <p>
-          Im Herbst 2017 durchquerten wir mit dem Zug die Vereinigten Staaten.
-        </p>
-        <p>
-          Damit die digitalen Aufnahmen dieser interessanten und vielseitigen Reise der Öffentlichkeit zugänglich sind, haben wir diese Website erstellt.
-        </p>
-        <p>
-          Klick auf die Punkte um die einzelnen Bilder und Videos zu finden. Sobald ein Bild oder Video geöffnet wurde, kannst du mit Hilfe der "links" und "rechts" Tasten der Tastatur oder den "<" und ">" Knöpfen auf dem Bild-Titel navigieren.
-        </p>
-        <p>
-          Der Knopf links oben schaltet zum Vollbild-Modus, mit dem Knopf rechts oben kehrst du zur Karte zurück.
-        </p>
-      </div>
-      <div class="gallery__image-caption gallery__control gallery--hidden">
-	      {{> button type="prev" }}
-	      {{> button type="next" }}
-        <span class="gallery__caption-text"></span>
-      </div>
-    </div>
-  </div>
+	<div id="gallery__map" tabindex="1"></div>
+	<div class="gallery__desktop">
+		<div class="gallery__navigation" tabindex="1">
+			<h3>
+				Fokus ändern
+			</h3>
+			{{> select type="state" label="Staat" }}
+			{{> select type="city" label="Stadt" }}
+		</div>
+		<div class="gallery__window">
+			{{> button type="fullscreen" hidden=true }}
+			{{> button type="delete" }}
+			{{> button type="close" }}
+			<div class="gallery__content">
+				<h1>
+					USA im Zug
+				</h1>
+				<p>
+					Im Herbst 2017 durchquerten wir mit dem Zug die Vereinigten Staaten.
+				</p>
+				<p>
+					Damit die digitalen Aufnahmen dieser interessanten und vielseitigen Reise der Öffentlichkeit zugänglich sind, haben wir diese Website erstellt.
+				</p>
+				<p>
+					Klick auf die Punkte um die einzelnen Bilder und Videos zu finden. Sobald ein Bild oder Video geöffnet wurde, kannst du mit Hilfe der "links" und "rechts" Tasten der Tastatur oder den "<" und ">" Knöpfen auf dem Bild-Titel navigieren.
+				</p>
+				<p>
+					Der Knopf links oben schaltet zum Vollbild-Modus, mit dem Knopf rechts oben kehrst du zur Karte zurück.
+				</p>
+			</div>
+			<div class="gallery__image-caption gallery__control gallery--hidden">
+				{{> button type="prev" }}
+				{{> button type="next" }}
+				<span class="gallery__image-caption-text"></span>
+			</div>
+		</div>
+	</div>
 	<script src="media/js/main.js"></script>
 
 </body>

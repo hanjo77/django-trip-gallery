@@ -13,8 +13,7 @@
   ],
   "dependencies": {
     "google-maps": "3.2.1",
-    "node-js-marker-clusterer": "1.0.0",
-    "jquery": "2.2.4"
+    "node-js-marker-clusterer": "1.0.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
@@ -45,6 +44,9 @@
     "vinyl-named": "^1.1.0",
     "webpack": "^3.8.1",
     "webpack-stream": "^4.0.0"
+  },
+  "engines": {
+    "node": "8.8.0"
   },
   "scripts": {
     "dev": "gulp --dev",
