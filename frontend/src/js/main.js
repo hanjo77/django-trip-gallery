@@ -66,7 +66,6 @@ const changeImage = (direction) => {
 	let index = parseInt(document.querySelector('.gallery__image').dataset.id, 10),
 		newIndex = index;
 
-		console.log(newIndex);
 	if (direction === 'prev') {
 		newIndex = (index > 0 ? index - 1 : markers.length-1);
 	}
@@ -145,6 +144,18 @@ const addMarkerClick = (marker, data) => {
 	});
 };
 
+const fadeControls = () => {
+	window.clearTimeout(timeoutControlFade);
+	document.querySelectorAll('.gallery__control').forEach((control) => {
+		control.classList.remove('gallery__control--fadeout');
+	});
+	timeoutControlFade = window.setTimeout(() => {
+		document.querySelectorAll('.gallery__control').forEach((control) => {
+			control.classList.add('gallery__control--fadeout');
+		});
+	}, 3000);
+};
+
 const addMarkers = () => {
 	let xhr = new XMLHttpRequest();
 	xhr.onload = () => {
@@ -208,11 +219,6 @@ const init = () => {
 	fillSelect('city', 'media/cities.json');
 	addMarkers();
 };
-
-GoogleMapsLoader.load((g) => {
-	google = g;
-	init();
-});
 
 const enterFullscreen = (element) => {
 	if (!document.querySelector('.gallery__window').classList.contains('gallery--fullscreen')) {
@@ -354,10 +360,13 @@ document.addEventListener('keydown', (event) => {
 	}
 });
 
-document.addEventListener('mousemove keyup click', () => {
-	window.clearTimeout(timeoutControlFade);
-	document.querySelector('.gallery__control').classList.remove('gallery__control--fadeout');
-	timeoutControlFade = window.setTimeout(() => {
-		document.querySelector('.gallery__control').classList.add('gallery__control--fadeout');
-	}, 3000);
+document.addEventListener('mousemove', fadeControls);
+document.addEventListener('keyup', fadeControls);
+document.addEventListener('click', fadeControls);
+
+GoogleMapsLoader.load((g) => {
+	google = g;
+	init();
 });
+
+
