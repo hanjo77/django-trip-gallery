@@ -119,9 +119,14 @@ const addMarkerClick = (marker, data) => {
 	marker.addListener('click', () => {
 		document.querySelector('.gallery__content').classList.add('gallery__image-container');
 		document.querySelector('.gallery__window').classList.remove('gallery__window--hidden');
-		document.querySelectorAll('.gallery__control').forEach((ctrl) => {
-			ctrl.classList.remove('gallery--hidden');
-		});
+
+		let controls = document.querySelectorAll('.gallery__control');
+		for (let i in controls) {
+			let control = controls[i];
+			if (control.classList) {
+				control.classList.remove('gallery--hidden');
+			}
+		}
 
 		if (window.location.href.indexOf(':8000') > -1) {
 			document.querySelector('.gallery__button--delete').classList.remove('gallery--hidden');
@@ -153,13 +158,20 @@ const addMarkerClick = (marker, data) => {
 
 const fadeControls = () => {
 	window.clearTimeout(timeoutControlFade);
-	document.querySelectorAll('.gallery__control').forEach((control) => {
-		control.classList.remove('gallery__control--fadeout');
-	});
+	let controls = document.querySelectorAll('.gallery__control');
+	for (let i in controls) {
+		let control = controls[i];
+		if (control.classList) {
+			control.classList.remove('gallery__control--fadeout');
+		}
+	}
 	timeoutControlFade = window.setTimeout(() => {
-		document.querySelectorAll('.gallery__control').forEach((control) => {
-			control.classList.add('gallery__control--fadeout');
-		});
+		for (let i in controls) {
+			let control = controls[i];
+			if (control.classList) {
+				control.classList.add('gallery__control--fadeout');
+			}
+		}
 	}, 3000);
 };
 
@@ -293,11 +305,16 @@ document.querySelector('[data-button="close"]').addEventListener('click', () =>{
 });
 
 //bind events for prev / next buttons
-document.querySelectorAll('.gallery__image-caption .gallery__button').forEach((button) => {
-	button.addEventListener('click', (event) => {
-		changeImage(event.currentTarget.dataset.button);
-	});
-});
+let buttons = document.querySelectorAll('.gallery__image-caption .gallery__button');
+for (let i in buttons) {
+	let button = buttons[i];
+	console.log(button);
+	if (button.addEventListener) {
+		button.addEventListener('click', (event) => {
+			changeImage(event.currentTarget.dataset.button);
+		});
+	}
+}
 
 //bind events for delete buttons
 document.querySelector('[data-button="delete"]').addEventListener('click', () => {
@@ -324,7 +341,9 @@ document.querySelector('[data-button="delete"]').addEventListener('click', () =>
 	}
 });
 
-document.querySelectorAll('.gallery__select').forEach((select) => {
+let selects = document.querySelectorAll('.gallery__select');
+for (let i = 0; i < selects.length; i++) {
+	let select = selects[i];
 	select.addEventListener('change', (event) => {
 		try {
 			let data = JSON.parse(event.currentTarget.options[event.currentTarget.selectedIndex].value.split('\'').join('\"'));
@@ -334,15 +353,19 @@ document.querySelectorAll('.gallery__select').forEach((select) => {
 				currentCity = data.pk;
 			}
 			else {
-				document.querySelectorAll('.gallery__select--city [data-id]').forEach((city) => {
-					let cityData = JSON.parse(city.value.split('\'').join('\"'));
-					if (cityData.state.pk === data.pk) {
-						city.style.display = 'block';
+				let cities = document.querySelectorAll('.gallery__select--city [data-id]');
+				for (let i = 0; i < cities.length; i++) {
+					let city = cities[i];
+					if (city && city.value) {
+						let cityData = JSON.parse(city.value.split('\'').join('\"'));
+						if (cityData.state.pk === data.pk) {
+							city.style.display = 'block';
+						}
+						else {
+							city.style.display = 'none';
+						}
 					}
-					else {
-						city.style.display = 'none';
-					}
-				});
+				}
 				if (currentState !== data.pk) {
 					document.querySelector('.gallery__select--city').selectedIndex = 0;
 					currentState = data.pk;
@@ -358,9 +381,11 @@ document.querySelectorAll('.gallery__select').forEach((select) => {
 		}
 		catch (e) {
 			if (event.currentTarget.classList.contains('gallery__select--state')) {
-				document.querySelectorAll('.gallery__select--city [data-id]').forEach((city) => {
+				let cities = document.querySelectorAll('.gallery__select--city [data-id]');
+				for (let i = 0; i < cities.length; i++) {
+					let city = cities[i];
 					city.style.display = 'block';
-				});
+				}
 				document.querySelector('.gallery__select--city').selectedIndex = 0;
 				map.setCenter(new google.maps.LatLng(initialLatitude, initialLongitude));
 				map.setZoom(initialZoom);
@@ -371,7 +396,7 @@ document.querySelectorAll('.gallery__select').forEach((select) => {
 			}
 		}
 	});
-});
+}
 
 document.addEventListener('keyup', (event) => {
 	if (document.querySelectorAll('.gallery__window--hidden').length <= 0 && document.querySelectorAll('.gallery__image').length > 0 ) {
