@@ -135,13 +135,20 @@ def update_cities(request):
 
     for city in cities:
         my_cities = Image.objects.filter(city = city)
-        my_cities_latitude = my_cities.order_by('latitude')
-        my_cities_longitude = my_cities.order_by('longitude')
-        city.min_latitude = my_cities_latitude.first().latitude
-        city.min_longitude = my_cities_longitude.first().longitude
-        city.max_latitude = my_cities_latitude.last().latitude
-        city.max_longitude = my_cities_longitude.last().longitude
-        city.save()
+        if len(my_cities) > 0:
+            my_cities_latitude = my_cities.order_by('latitude')
+            my_cities_longitude = my_cities.order_by('longitude')
+            my_cities_states = my_cities.order_by('state')
+            city.min_latitude = my_cities_latitude.first().latitude
+            city.min_longitude = my_cities_longitude.first().longitude
+            city.max_latitude = my_cities_latitude.last().latitude
+            city.max_longitude = my_cities_longitude.last().longitude
+            if (my_cities_states.first().state != my_cities_states.last().state):
+                print city.name + ' is not unique: ' + my_cities_states.first().state.name + ' - ' + my_cities_states.last().state.name
+            city.state = my_cities_states.first().state
+            city.save()
+        else:
+            city.delete()
 
     response = HttpResponse('done')
     return response

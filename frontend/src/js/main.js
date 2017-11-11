@@ -7,7 +7,12 @@ let map,
 	lastTouch = [],
 	MarkerClusterer = require('node-js-marker-clusterer'),
 	google = null,
-	timeoutControlFade;
+	timeoutControlFade,
+	initialZoom = 4,
+	initialLatitude = 38.9284715,
+	initialLongitude = -97.5515638,
+	currentState,
+	currentCity;
 
 let GoogleMapsLoader = require('google-maps');
 GoogleMapsLoader.KEY = 'AIzaSyD_C6GDv2SAhTGc2ijeomtQThYpS761PvU';
@@ -20,7 +25,7 @@ const fillSelect = (type, url) => {
 			option;
 		for (let i = 0; i < data.length; i++) {
 			option = data[i];
-			select.insertAdjacentHTML('beforeend', '<option value="' + JSON.stringify(option).split('\"').join('\'') + '">' + option.name + '</option>');
+			select.insertAdjacentHTML('beforeend', '<option data-id="' + option.pk + '" value="' + JSON.stringify(option).split('\"').join('\'') + '">' + option.name + '</option>');
 		}
 	};
 	xhr.onerror = () => {
@@ -208,9 +213,9 @@ const init = () => {
 	document.querySelector('.gallery__button--delete').classList.add('gallery--hidden');
 	document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
 
-	let latlng = new google.maps.LatLng(38.9284715,-97.5515638),
+	let latlng = new google.maps.LatLng(initialLatitude, initialLongitude),
 		myOptions = {
-			zoom: 4,
+			zoom: initialZoom,
 			center: latlng,
 			mapTypeId: google.maps.MapTypeId.SATELLITE // HYBRID
 		};
@@ -321,15 +326,50 @@ document.querySelector('[data-button="delete"]').addEventListener('click', () =>
 
 document.querySelectorAll('.gallery__select').forEach((select) => {
 	select.addEventListener('change', (event) => {
-		let data = JSON.parse(event.currentTarget.options[event.currentTarget.selectedIndex].value.split('\'').join('\"'));
-		let sw = new google.maps.LatLng(data.max_latitude, data.max_longitude);
-		let ne = new google.maps.LatLng(data.min_latitude, data.min_longitude);
-		new google.maps.LatLngBounds();
-		let bounds = new google.maps.LatLngBounds();
-		bounds.extend(sw);
-		bounds.extend(ne);
-		map.fitBounds(bounds);
-		event.currentTarget.selectedIndex = 0;
+		try {
+			let data = JSON.parse(event.currentTarget.options[event.currentTarget.selectedIndex].value.split('\'').join('\"'));
+			if (data.state) {
+				document.querySelector('.gallery__select--state [data-id="' + data.state.pk + '"]').selected = true;
+				document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'));
+				currentCity = data.pk;
+			}
+			else {
+				document.querySelectorAll('.gallery__select--city [data-id]').forEach((city) => {
+					let cityData = JSON.parse(city.value.split('\'').join('\"'));
+					if (cityData.state.pk === data.pk) {
+						city.style.display = 'block';
+					}
+					else {
+						city.style.display = 'none';
+					}
+				});
+				if (currentState !== data.pk) {
+					document.querySelector('.gallery__select--city').selectedIndex = 0;
+					currentState = data.pk;
+				}
+			}
+			let sw = new google.maps.LatLng(data.max_latitude, data.max_longitude);
+			let ne = new google.maps.LatLng(data.min_latitude, data.min_longitude);
+			new google.maps.LatLngBounds();
+			let bounds = new google.maps.LatLngBounds();
+			bounds.extend(sw);
+			bounds.extend(ne);
+			map.fitBounds(bounds);
+		}
+		catch (e) {
+			if (event.currentTarget.classList.contains('gallery__select--state')) {
+				document.querySelectorAll('.gallery__select--city [data-id]').forEach((city) => {
+					city.style.display = 'block';
+				});
+				document.querySelector('.gallery__select--city').selectedIndex = 0;
+				map.setCenter(new google.maps.LatLng(initialLatitude, initialLongitude));
+				map.setZoom(initialZoom);
+				currentState = -1;
+			}
+			else {
+				document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'));
+			}
+		}
 	});
 });
 
@@ -349,7 +389,7 @@ document.addEventListener('keyup', (event) => {
 	}
 });
 
-const fullScreenChange = (event) => {
+const fullScreenChange = () => {
 	if (!document.querySelector('.gallery__window').classList.contains('gallery--fullscreen')) {
 		document.querySelector('.gallery__window').classList.add('gallery--fullscreen');
 		document.querySelector('[data-button="fullscreen"]').classList.remove('gallery__button--fullscreen');

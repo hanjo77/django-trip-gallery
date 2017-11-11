@@ -18,13 +18,14 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 class StateSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = State
-        fields = ('name', 'min_latitude', 'min_longitude', 'max_latitude', 'max_longitude')
+        fields = ('pk', 'name', 'min_latitude', 'min_longitude', 'max_latitude', 'max_longitude')
 
 
 class CitySerializer(serializers.HyperlinkedModelSerializer):
+    state = StateSerializer()
     class Meta:
         model = City
-        fields = ('name', 'min_latitude', 'min_longitude', 'max_latitude', 'max_longitude')
+        fields = ('pk', 'name', 'min_latitude', 'min_longitude', 'max_latitude', 'max_longitude', 'state')
 
 
 class AddressSerializer(serializers.HyperlinkedModelSerializer):

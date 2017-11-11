@@ -93,6 +93,7 @@ class City(models.Model):
     min_longitude = models.FloatField(null=True, blank=True)
     max_latitude = models.FloatField(null=True, blank=True)
     max_longitude = models.FloatField(null=True, blank=True)
+    state = models.ForeignKey('State', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return '%s' % (self.name)
