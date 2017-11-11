@@ -141,6 +141,8 @@ const addMarkerClick = (marker, data) => {
 		activeMarker = marker;
 		map.panTo(marker.position);
 		document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
+
+		map.setOptions({ keyboardShortcuts: false });
 	});
 };
 
@@ -221,11 +223,6 @@ const init = () => {
 };
 
 const enterFullscreen = (element) => {
-	if (!document.querySelector('.gallery__window').classList.contains('gallery--fullscreen')) {
-		document.querySelector('.gallery__window').classList.add('gallery--fullscreen');
-		document.querySelector('[data-button="fullscreen"]').classList.remove('gallery__button--fullscreen');
-		document.querySelector('[data-button="fullscreen"]').classList.add('gallery__button--windowed');
-	}
 	if(element.requestFullscreen) {
 		element.requestFullscreen();
 	}
@@ -249,11 +246,6 @@ const exitFullscreen = () => {
 	}
 	else if(document.webkitExitFullscreen) {
 		document.webkitExitFullscreen();
-	}
-	if (document.querySelector('.gallery__window').classList.contains('gallery--fullscreen')) {
-		document.querySelector('.gallery__window').classList.remove('gallery--fullscreen');
-		document.querySelector('[data-button="fullscreen"]').classList.remove('gallery__button--windowed');
-		document.querySelector('[data-button="fullscreen"]').classList.add('gallery__button--fullscreen');
 	}
 };
 
@@ -290,6 +282,8 @@ document.querySelector('[data-button="close"]').addEventListener('click', () =>{
 	document.querySelector('.gallery__window').classList.add('gallery__window--hidden');
 	document.querySelector('.gallery__content').classList.remove('gallery__image-container');
 	document.querySelector('.gallery__navigation').classList.remove('gallery--hidden');
+
+	map.setOptions({ keyboardShortcuts: true });
 	document.getElementById('gallery__map').focus();
 });
 
@@ -340,25 +334,38 @@ document.querySelectorAll('.gallery__select').forEach((select) => {
 });
 
 document.addEventListener('keyup', (event) => {
-	if (document.querySelectorAll('.gallery__window--hidden').length <= 0) {
+	if (document.querySelectorAll('.gallery__window--hidden').length <= 0 && document.querySelectorAll('.gallery__image').length > 0 ) {
 		if (event.keyCode === 37) { // left
 			changeImage('prev');
 		} else if (event.keyCode === 39) { // right
 			changeImage('next');
-		} else if (event.keyCode === 27) { // escape
+		}
+	}
+
+	if (event.keyCode === 27) { // escape
+		if (!document.querySelector('.gallery__window').classList.contains('gallery--fullscreen')) {
 			document.querySelector('[data-button="close"]').dispatchEvent(new Event('click'));
-			exitFullscreen();
 		}
 	}
 });
 
-document.addEventListener('keydown', (event) => {
-	if (document.querySelectorAll('.gallery__window--hidden').length <= 0) {
-		if (event.keyCode in [37, 39]) { // left or right
-			event.preventDefault();
-		}
+const fullScreenChange = (event) => {
+	if (!document.querySelector('.gallery__window').classList.contains('gallery--fullscreen')) {
+		document.querySelector('.gallery__window').classList.add('gallery--fullscreen');
+		document.querySelector('[data-button="fullscreen"]').classList.remove('gallery__button--fullscreen');
+		document.querySelector('[data-button="fullscreen"]').classList.add('gallery__button--windowed');
 	}
-});
+	else {
+		document.querySelector('.gallery__window').classList.remove('gallery--fullscreen');
+		document.querySelector('[data-button="fullscreen"]').classList.remove('gallery__button--windowed');
+		document.querySelector('[data-button="fullscreen"]').classList.add('gallery__button--fullscreen');
+	}
+};
+
+document.addEventListener('fullscreenchange', fullScreenChange);
+document.addEventListener('mozfullscreenchange', fullScreenChange);
+document.addEventListener('webkitfullscreenchange', fullScreenChange);
+document.addEventListener('MSFullscreenChange', fullScreenChange);
 
 document.addEventListener('mousemove', fadeControls);
 document.addEventListener('keyup', fadeControls);
