@@ -132,6 +132,9 @@ const addMarkerClick = (marker, data) => {
 		if (window.location.href.indexOf(':8000') > -1) {
 			document.querySelector('.gallery__button--delete').classList.remove('gallery--hidden');
 		}
+		else {
+			document.querySelector('.gallery__button--delete').classList.add('gallery--hidden');
+		}
 
 		if (marker.contentType === 'photo') {
 			document.querySelector('.gallery__content').innerHTML = '<img class="gallery__image" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
