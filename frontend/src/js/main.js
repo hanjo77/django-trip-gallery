@@ -4,6 +4,7 @@ let map,
 	markers = [],
 	markerclusterer,
 	activeMarker,
+	activeMarkerIndex,
 	lastTouch = [],
 	MarkerClusterer = require('node-js-marker-clusterer'),
 	google = null,
@@ -131,9 +132,6 @@ const addMarkerClick = (marker, data) => {
 		if (window.location.href.indexOf(':8000') > -1) {
 			document.querySelector('.gallery__button--delete').classList.remove('gallery--hidden');
 		}
-		else {
-			document.querySelector('.gallery__button--delete').classList.add('gallery--hidden');
-		}
 
 		if (marker.contentType === 'photo') {
 			document.querySelector('.gallery__content').innerHTML = '<img class="gallery__image" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
@@ -149,6 +147,8 @@ const addMarkerClick = (marker, data) => {
 		document.querySelector('.gallery__image-caption-text').innerHTML = marker.description;
 
 		activeMarker = marker;
+		activeMarkerIndex = marker.index;
+
 		map.panTo(marker.position);
 		document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
 
@@ -222,8 +222,10 @@ const addMarkers = () => {
 
 //initialise a map
 const init = () => {
-	document.querySelector('.gallery__button--delete').classList.add('gallery--hidden');
-	document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
+  document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
+ 	if (window.location.href.indexOf(':8000') > -1) {
+		document.querySelector('.gallery__button--cleanup').classList.remove('gallery--hidden');
+	}
 
 	let latlng = new google.maps.LatLng(initialLatitude, initialLongitude),
 		myOptions = {
@@ -308,7 +310,6 @@ document.querySelector('[data-button="close"]').addEventListener('click', () =>{
 let buttons = document.querySelectorAll('.gallery__image-caption .gallery__button');
 for (let i in buttons) {
 	let button = buttons[i];
-	console.log(button);
 	if (button.addEventListener) {
 		button.addEventListener('click', (event) => {
 			changeImage(event.currentTarget.dataset.button);
@@ -326,10 +327,22 @@ document.querySelector('[data-button="delete"]').addEventListener('click', () =>
 			let xhr = new XMLHttpRequest();
 			xhr.onload = () => {
 				window.alert('Bild ' + id + ' wurde gelöscht, wechsle zum nächsten...');
+				// Remove marker from map and from markers array
+				markers[activeMarkerIndex].setMap(null);
+				markers.splice(activeMarkerIndex, 1);
+
+				// Update marker index for all following markers
+				for (let i = activeMarkerIndex; i < markers.length; i++) {
+					markers[i].index = i;
+				}
+
+				// Set back activeMarkerIndex since we will change to the next image which now has the same index as the deleted one
+				activeMarkerIndex -= 1;
+				document.querySelector('.gallery__image').dataset.id = activeMarkerIndex;
 				changeImage('next');
 			};
 			xhr.onerror = () => {
-				window.alert('Bild konnte nicht gelöscht werden: ID nicht lesbar.');
+				window.alert('Bild ' + id + ' konnte nicht gelöscht werden: ID nicht lesbar.');
 			};
 			xhr.open('DELETE', '/api/images/' + id + '/');
 			xhr.responseType = "text";
@@ -337,8 +350,22 @@ document.querySelector('[data-button="delete"]').addEventListener('click', () =>
 			xhr.send();
 		}
 		else {
+			window.alert('Bild ' + id + ' konnte nicht gelöscht werden: ID nicht lesbar.');
 		}
 	}
+});
+
+document.querySelector('.gallery__button--cleanup').addEventListener('click', () => {
+	let xhr = new XMLHttpRequest();
+	xhr.onload = () => {
+		window.alert('Datenbank bereinigt.');
+	};
+	xhr.onerror = () => {
+		window.alert('Fehler beim Bereinigen der Bilder.');
+	};
+	xhr.open('GET', '/cleanup_images');
+	xhr.responseType = "text";
+	xhr.send();
 });
 
 let selects = document.querySelectorAll('.gallery__select');

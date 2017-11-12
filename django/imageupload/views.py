@@ -92,7 +92,10 @@ def cleanup_images(request):
                     response_text = response_text + join(path, title, file) + "<br />"
 
     response = HttpResponse(response_text)
-    return response
+    response = update_states(request)
+    response = update_cities(request)
+    response = locations(request)
+    return save_json(response)
 
 def import_videos(request):
     path = "images"
