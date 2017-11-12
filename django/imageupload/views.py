@@ -91,11 +91,13 @@ def cleanup_images(request):
                 except:
                     response_text = response_text + join(path, title, file) + "<br />"
 
-    response = HttpResponse(response_text)
-    response = update_states(request)
-    response = update_cities(request)
-    response = locations(request)
-    return save_json(response)
+    # Update states and cites, KML and JSON files
+    update_states(request)
+    update_cities(request)
+    locations(request)
+    save_json(request)
+
+    return HttpResponse(response_text)
 
 def import_videos(request):
     path = "images"

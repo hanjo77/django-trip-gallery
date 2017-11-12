@@ -158,7 +158,7 @@ const addMarkerClick = (marker, data) => {
 
 const fadeControls = () => {
 	window.clearTimeout(timeoutControlFade);
-	let controls = document.querySelectorAll('.gallery__control');
+	let controls = document.querySelectorAll('.gallery__window .gallery__control');
 	for (let i in controls) {
 		let control = controls[i];
 		if (control.classList) {
@@ -223,9 +223,6 @@ const addMarkers = () => {
 //initialise a map
 const init = () => {
   document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
- 	if (window.location.href.indexOf(':8000') > -1) {
-		document.querySelector('.gallery__button--cleanup').classList.remove('gallery--hidden');
-	}
 
 	let latlng = new google.maps.LatLng(initialLatitude, initialLongitude),
 		myOptions = {
@@ -301,6 +298,9 @@ document.querySelector('[data-button="close"]').addEventListener('click', () =>{
 	document.querySelector('.gallery__window').classList.add('gallery__window--hidden');
 	document.querySelector('.gallery__content').classList.remove('gallery__image-container');
 	document.querySelector('.gallery__navigation').classList.remove('gallery--hidden');
+	if (window.location.href.indexOf(':8000') > -1) {
+		document.querySelector('.gallery__button--cleanup').classList.remove('gallery--hidden');
+	}
 
 	map.setOptions({ keyboardShortcuts: true });
 	document.getElementById('gallery__map').focus();
@@ -356,16 +356,26 @@ document.querySelector('[data-button="delete"]').addEventListener('click', () =>
 });
 
 document.querySelector('.gallery__button--cleanup').addEventListener('click', () => {
-	let xhr = new XMLHttpRequest();
+	let xhr = new XMLHttpRequest(),
+		button = document.querySelector('.gallery__button--cleanup'),
+		defaultText = 'Daten bereinigen';
+
 	xhr.onload = () => {
-		window.alert('Datenbank bereinigt.');
+		window.alert('Daten bereinigt.');
+		button.removeAttribute('disabled');
+		button.innerHTML = defaultText;
 	};
 	xhr.onerror = () => {
 		window.alert('Fehler beim Bereinigen der Bilder.');
+		button.removeAttribute('disabled');
+		button.innerHTML = defaultText;
 	};
 	xhr.open('GET', '/cleanup_images');
 	xhr.responseType = "text";
 	xhr.send();
+
+	button.setAttribute('disabled', 'disabled');
+	button.innerHTML = '<span class="wait-icon"></span> bitte warten';
 });
 
 let selects = document.querySelectorAll('.gallery__select');
