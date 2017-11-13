@@ -431,9 +431,10 @@ for (let i = 0; i < selects.length; i++) {
 		try {
 			let data = JSON.parse(event.currentTarget.options[event.currentTarget.selectedIndex].value.split('\'').join('\"'));
 			if (data.state) {
+				currentCity = data.pk;
+				currentState = data.state.pk;
 				document.querySelector('.gallery__select--state [data-id="' + data.state.pk + '"]').selected = true;
 				document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'));
-				currentCity = data.pk;
 			}
 			else {
 				let cities = document.querySelectorAll('.gallery__select--city [data-id]');
