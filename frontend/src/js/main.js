@@ -191,10 +191,10 @@ const addMarkers = () => {
 			let pos = new google.maps.LatLng(data.latitude, data.longitude),
 				title = data.title;
 
-			if (data.address && data.address.name !== data.title) {
-				title += (title !== '' ? ', ' : '') + data.address.name;
+			if (data.address !== data.title) {
+				title += (title !== '' ? ', ' : '') + data.address;
 			}
-			title += (title !== '' ? '<br />' : '') + data.city.name + ", " + data.state.name;
+			title += (title !== '' ? '<br />' : '') + data.city + ", " + data.state;
 
 			let contentType = (url.indexOf('.jpg') > -1 ? 'photo' : 'video');
 

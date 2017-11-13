@@ -35,22 +35,23 @@ def index(request):
 
 def locations(request):
     kml = simplekml.Kml()
-    images = Image.objects.all().order_by('date')
+
+    full_url = ''.join(['http://', request.META['HTTP_HOST'], '/api/images'])
+    imageString = urllib.urlopen(full_url)
+    images = json.loads(imageString.read())
     for image in images:
-        full_url = ''.join(['http://', request.META['HTTP_HOST'], '/api/images/', str(image.pk)])
-        img_string = urllib.urlopen(full_url)
-        data = json.dumps(json.loads(img_string.read()))
+        data = json.dumps(image)
 
         kml.newpoint(
-            name = image.image.url[1:],
+            name = image['image'],
             description = data,
             coords = [(
-                image.longitude,
-                image.latitude
+                image['longitude'],
+                image['latitude']
             )]
         ) 
 
-    kml.save(join(settings.MEDIA_ROOT, 'locations.kml'))
+    kml.save(join(settings.MEDIA_ROOT, 'locations.kml'), format=False)
 
     response = HttpResponse(kml.kml())
     return response

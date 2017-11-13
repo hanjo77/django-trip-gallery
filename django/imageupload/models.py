@@ -84,7 +84,7 @@ class State(models.Model):
     max_latitude = models.FloatField(null=True, blank=True)
     max_longitude = models.FloatField(null=True, blank=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return '%s' % (self.name)
 
 class City(models.Model):
@@ -95,13 +95,13 @@ class City(models.Model):
     max_longitude = models.FloatField(null=True, blank=True)
     state = models.ForeignKey('State', on_delete=models.CASCADE, null=True, blank=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return '%s' % (self.name)
 
 class Address(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return '%s' % (self.name)
 
 # Create your models here.

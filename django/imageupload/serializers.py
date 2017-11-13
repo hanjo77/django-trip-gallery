@@ -35,9 +35,9 @@ class AddressSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
-    state = StateSerializer()
-    city = CitySerializer()
-    address = AddressSerializer()
+    state = serializers.StringRelatedField()
+    city = serializers.StringRelatedField()
+    address = serializers.StringRelatedField()
     class Meta:
         model = Image
         fields = ('pk', 'url', 'image', 'title', 'latitude', 'longitude', 'state', 'city', 'address')

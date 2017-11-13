@@ -205,9 +205,11 @@ p {
 			min-height: 0;
 			height: auto;
 			border-radius: .3em;
+
 			&[disabled=disabled] {
 				box-shadow: none;
 				border: 1px solid #666666;
+				background-color: rgba(0, 0, 0, 0.2);
 			}
 		}
 
