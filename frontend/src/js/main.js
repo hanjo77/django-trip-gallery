@@ -188,6 +188,9 @@ const addMarkers = () => {
 				desc = element.getElementsByTagName('description')[0].textContent,
 				data = JSON.parse(desc);
 
+
+			url = url.substring(url.lastIndexOf('/media/') + 1);
+
 			let pos = new google.maps.LatLng(data.latitude, data.longitude),
 				title = data.title;
 
