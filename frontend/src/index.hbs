@@ -27,7 +27,7 @@
 	<div id="gallery__map" tabindex="1"></div>
 	<div class="gallery__desktop">
 		<div class="gallery__navigation" tabindex="1">
-			<h3>
+			<h3 data-locale="change_focus">
 				Fokus ändern
 			</h3>
 			{{> select type="state" label="Staat" }}
@@ -39,21 +39,23 @@
 			{{> button type="delete" hidden=true }}
 			{{> button type="close" }}
 			<div class="gallery__content">
-				<h1>
+				<h1 data-locale="title">
 					USA im Zug
 				</h1>
-				<p>
-					Im Herbst 2017 durchquerten wir mit dem Zug die Vereinigten Staaten.
-				</p>
-				<p>
-					Damit die digitalen Aufnahmen dieser interessanten und vielseitigen Reise der Öffentlichkeit zugänglich sind, haben wir diese Website erstellt.
-				</p>
-				<p>
-					Klick auf die Punkte um die einzelnen Bilder und Videos zu finden. Sobald ein Bild oder Video geöffnet wurde, kannst du mit Hilfe der "links" und "rechts" Tasten der Tastatur oder den "<" und ">" Knöpfen auf dem Bild-Titel navigieren.
-				</p>
-				<p>
-					Der Knopf links oben schaltet zum Vollbild-Modus, mit dem Knopf rechts oben kehrst du zur Karte zurück.
-				</p>
+				<span data-locale="welcome_text">
+					<p>
+						Im Herbst 2017 durchquerten wir mit dem Zug die Vereinigten Staaten.
+					</p>
+					<p>
+						Damit die digitalen Aufnahmen dieser interessanten und vielseitigen Reise der Öffentlichkeit zugänglich sind, haben wir diese Website erstellt.
+					</p>
+					<p>
+						Klick auf die Punkte um die einzelnen Bilder und Videos zu finden. Sobald ein Bild oder Video geöffnet wurde, kannst du mit Hilfe der "links" und "rechts" Tasten der Tastatur oder den "<" und ">" Knöpfen auf dem Bild-Titel navigieren.
+					</p>
+					<p>
+						Der Knopf links oben schaltet zum Vollbild-Modus, mit dem Knopf rechts oben kehrst du zur Karte zurück.
+					</p>
+				</span>
 			</div>
 			<div class="gallery__image-caption gallery__control gallery--hidden">
 				{{> button type="prev" }}

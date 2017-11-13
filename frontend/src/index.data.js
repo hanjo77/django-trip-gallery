@@ -1,5 +1,5 @@
-let selectData = require('./partials/select');
-let buttonData = require('./partials/button');
+let selectData = require('./partials/select'),
+	buttonData = require('./partials/button');
 
 data = {
 	title: 'USA by train',

@@ -37,6 +37,35 @@ const fillSelect = (type, url) => {
 	xhr.send();
 };
 
+const localizeData = (lang) => {
+	if (!lang) {
+		lang = navigator.language || navigator.userLanguage;
+	}
+	let url = 'media/locale-' + lang + '.json';
+	let xhr = new XMLHttpRequest();
+	xhr.onload = () => {
+		if(xhr.status === 404) {
+			localizeData('en');
+		}
+		else {
+			let data = JSON.parse(xhr.responseText);
+			for (let key in data) {
+				let elem = document.querySelector('[data-locale="' + key + '"]');
+				console.log(elem);
+				if (elem) {
+					elem.innerHTML = data[key];
+				}
+			}
+		}
+	};
+	xhr.onerror = () => {
+		localizeData('en');
+	};
+	xhr.open("GET", url);
+	xhr.responseType = 'text';
+	xhr.send();
+};
+
 const addMarkerCluster = () => {
 	let clusterStyles = [
 		{
@@ -114,6 +143,37 @@ const imageTouchEnd = (event) => {
 		}
 	}
 	lastTouch = [];
+};
+
+const resizeImageWindow = () => {
+	let win = document.querySelector('.gallery__window'),
+		image = document.querySelector('.gallery__image'),
+		scalePercentage = win.classList.contains('gallery--fullscreen') ? 100 : 80,
+		mediaHeight,
+		mediaWidth;
+
+	if (image && win) {
+		if (image.tagName.toLowerCase() === 'video') {
+			mediaHeight = image.videoHeight;
+			mediaWidth = image.videoWidth;
+		}
+		else {
+			mediaHeight = image.naturalHeight;
+			mediaWidth = image.naturalWidth;
+		}
+
+		let imageHeight = window.innerHeight * scalePercentage / 100,
+			imageWidth = imageHeight * mediaWidth / mediaHeight;
+
+		if (imageWidth > window.innerWidth * scalePercentage / 100) {
+			imageWidth = window.innerWidth * scalePercentage / 100;
+			imageHeight = imageWidth * mediaHeight / mediaWidth;
+		}
+
+		win.style.width = imageWidth + 'px';
+		image.style.height = imageHeight + 'px';
+		image.style.width = imageWidth + 'px';
+	}
 };
 
 const addMarkerClick = (marker, data) => {
@@ -242,6 +302,7 @@ const init = () => {
 	fillSelect('state', 'media/states.json');
 	fillSelect('city', 'media/cities.json');
 	addMarkers();
+	localizeData();
 };
 
 const enterFullscreen = (element) => {
@@ -286,37 +347,6 @@ const getCookie = (name) => {
 	}
 	return cookieValue;
 };
-
-const resizeImageWindow = () => {
-	let win = document.querySelector('.gallery__window'),
-		image = document.querySelector('.gallery__image'),
-		scalePercentage = win.classList.contains('gallery--fullscreen') ? 100 : 80,
-		mediaHeight,
-		mediaWidth;
-
-	if (image && win) {
-		if (image.tagName.toLowerCase() === 'video') {
-			mediaHeight = image.videoHeight;
-			mediaWidth = image.videoWidth;
-		}
-		else {
-			mediaHeight = image.naturalHeight;
-			mediaWidth = image.naturalWidth;
-		}
-
-		let imageHeight = window.innerHeight * scalePercentage / 100,
-			imageWidth = imageHeight * mediaWidth / mediaHeight;
-
-		if (imageWidth > window.innerWidth * scalePercentage / 100) {
-			imageWidth = window.innerWidth * scalePercentage / 100;
-			imageHeight = imageWidth * mediaHeight / mediaWidth;
-		}
-
-		win.style.width = imageWidth + 'px';
-		image.style.height = imageHeight + 'px';
-		image.style.width = imageWidth + 'px';
-	}
-}
 
 function stopVideo(video){
 	if (video) {
