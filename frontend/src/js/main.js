@@ -156,6 +156,9 @@ const addMarkerClick = (marker, data) => {
 		document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
 
 		map.setOptions({ keyboardShortcuts: false });
+
+		document.querySelector('.gallery__image').addEventListener('load', resizeImageWindow);
+		document.querySelector('.gallery__image').addEventListener('loadedmetadata', resizeImageWindow);
 	});
 };
 
@@ -284,6 +287,44 @@ const getCookie = (name) => {
 	return cookieValue;
 };
 
+const resizeImageWindow = () => {
+	let win = document.querySelector('.gallery__window'),
+		image = document.querySelector('.gallery__image'),
+		scalePercentage = win.classList.contains('gallery--fullscreen') ? 100 : 80,
+		mediaHeight,
+		mediaWidth;
+
+	if (image && win) {
+		if (image.tagName.toLowerCase() === 'video') {
+			mediaHeight = image.videoHeight;
+			mediaWidth = image.videoWidth;
+		}
+		else {
+			mediaHeight = image.naturalHeight;
+			mediaWidth = image.naturalWidth;
+		}
+
+		let imageHeight = window.innerHeight * scalePercentage / 100,
+			imageWidth = imageHeight * mediaWidth / mediaHeight;
+
+		if (imageWidth > window.innerWidth * scalePercentage / 100) {
+			imageWidth = window.innerWidth * scalePercentage / 100;
+			imageHeight = imageWidth * mediaHeight / mediaWidth;
+		}
+
+		win.style.width = imageWidth + 'px';
+		image.style.height = imageHeight + 'px';
+		image.style.width = imageWidth + 'px';
+	}
+}
+
+function stopVideo(video){
+	if (video) {
+		video.pause();
+		video.currentTime = 0;
+	}
+}
+
 //bind events for close button
 document.querySelector('[data-button="fullscreen"]').addEventListener('click', (event) => {
 	if (event.currentTarget.classList.contains('gallery__button--fullscreen')) {
@@ -307,6 +348,8 @@ document.querySelector('[data-button="close"]').addEventListener('click', () =>{
 
 	map.setOptions({ keyboardShortcuts: true });
 	document.getElementById('gallery__map').focus();
+
+	stopVideo(document.querySelector('video'));
 });
 
 //bind events for prev / next buttons
@@ -454,6 +497,8 @@ document.addEventListener('keyup', (event) => {
 	}
 });
 
+window.addEventListener('resize', resizeImageWindow);
+
 const fullScreenChange = () => {
 	if (!document.querySelector('.gallery__window').classList.contains('gallery--fullscreen')) {
 		document.querySelector('.gallery__window').classList.add('gallery--fullscreen');
@@ -465,6 +510,7 @@ const fullScreenChange = () => {
 		document.querySelector('[data-button="fullscreen"]').classList.remove('gallery__button--windowed');
 		document.querySelector('[data-button="fullscreen"]').classList.add('gallery__button--fullscreen');
 	}
+	resizeImageWindow();
 };
 
 document.addEventListener('fullscreenchange', fullScreenChange);
