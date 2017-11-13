@@ -36,10 +36,13 @@ def index(request):
 def locations(request):
     kml = simplekml.Kml()
 
-    full_url = ''.join(['http://', request.META['HTTP_HOST'], '/api/images'])
+    domain = ''.join(['http://', request.META['HTTP_HOST'], '/'])
+    full_url = ''.join([domain, 'api/images'])
     imageString = urllib.urlopen(full_url)
     images = json.loads(imageString.read())
     for image in images:
+        image['image'] = image['image'].replace(domain, '')
+        image.pop('url', None)
         data = json.dumps(image)
 
         kml.newpoint(
