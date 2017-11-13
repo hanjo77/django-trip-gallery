@@ -51,7 +51,6 @@ const localizeData = (lang) => {
 			let data = JSON.parse(xhr.responseText);
 			for (let key in data) {
 				let elem = document.querySelector('[data-locale="' + key + '"]');
-				console.log(elem);
 				if (elem) {
 					elem.innerHTML = data[key];
 				}
@@ -148,6 +147,7 @@ const imageTouchEnd = (event) => {
 const resizeImageWindow = () => {
 	let win = document.querySelector('.gallery__window'),
 		image = document.querySelector('.gallery__image'),
+		container = document.querySelector('.gallery__content'),
 		scalePercentage = win.classList.contains('gallery--fullscreen') ? 100 : 80,
 		mediaHeight,
 		mediaWidth;
@@ -160,6 +160,7 @@ const resizeImageWindow = () => {
 		else {
 			mediaHeight = image.naturalHeight;
 			mediaWidth = image.naturalWidth;
+			image.classList.remove('gallery__image--fadeout');
 		}
 
 		let imageHeight = window.innerHeight * scalePercentage / 100,
@@ -173,6 +174,8 @@ const resizeImageWindow = () => {
 		win.style.width = imageWidth + 'px';
 		image.style.height = imageHeight + 'px';
 		image.style.width = imageWidth + 'px';
+		container.style.width = imageWidth + 'px';
+		container.style.height = imageHeight + 'px';
 	}
 };
 
@@ -196,11 +199,19 @@ const addMarkerClick = (marker, data) => {
 			document.querySelector('.gallery__button--delete').classList.add('gallery--hidden');
 		}
 
+		let image = document.querySelector('img.gallery__image');
+		let container = document.querySelector('.gallery__content');
+
 		if (marker.contentType === 'photo') {
-			document.querySelector('.gallery__content').innerHTML = '<img class="gallery__image" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
+			if (image) {
+				container.style.backgroundImage = 'url(' + image.src + ')';
+				container.style.width = image.style.width;
+				container.style.height = image.style.height;
+			}
+			container.innerHTML = '<img class="gallery__image gallery__image--fadeout" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
 		}
 		else {
-			document.querySelector('.gallery__content').innerHTML = '<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
+			container.innerHTML = '<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
 		}
 
 		let galleryImage = document.querySelector('.gallery__image');
@@ -372,6 +383,8 @@ document.querySelector('[data-button="close"]').addEventListener('click', () =>{
 	document.querySelector('.gallery__window').classList.add('gallery__window--hidden');
 	document.querySelector('.gallery__content').classList.remove('gallery__image-container');
 	document.querySelector('.gallery__navigation').classList.remove('gallery--hidden');
+	document.querySelector('.gallery__content').style.backgroundImage = 'none';
+	document.querySelector('.gallery__content').innerHTML = '';
 	if (window.location.href.indexOf(':8000') > -1) {
 		document.querySelector('.gallery__button--cleanup').classList.remove('gallery--hidden');
 	}
