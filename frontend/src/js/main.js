@@ -63,6 +63,15 @@ const localizeData = (lang) => {
 					elem.innerHTML = data[key];
 				}
 			}
+
+			let win = document.querySelector('.gallery__window'),
+				content = document.querySelector('.gallery__content'),
+				emSize = parseFloat(getComputedStyle(content).fontSize);
+
+			win.style.width = win.offsetWidth + 'px';
+			win.style.height = win.offsetHeight + 'px';
+			content.style.width = (content.offsetWidth - (emSize * 2)) + 'px';
+			content.style.height = (content.offsetHeight - (emSize * 2)) + 'px';
 		}
 	};
 	xhr.onerror = () => {
@@ -646,16 +655,4 @@ GoogleMapsLoader.load((g) => {
 	google = g;
 	init();
 });
-
-window.addEventListener('load', () => {
-	let win = document.querySelector('.gallery__window'),
-		content = document.querySelector('.gallery__content'),
-		emSize = parseFloat(getComputedStyle(content).fontSize);
-
-	win.style.width = win.offsetWidth + 'px';
-	win.style.height = win.offsetHeight + 'px';
-	content.style.width = (content.offsetWidth - (emSize * 2)) + 'px';
-	content.style.height = (content.offsetHeight - (emSize * 2)) + 'px';
-});
-
 
