@@ -1,4 +1,8 @@
 {
+	"meta": {
+		"title": "Deutsch"
+	},
+	"change_language": "Sprache",
 	"state": "Staat",
 	"city": "Ort",
 	"change_focus": "Fokus ändern",

@@ -27,8 +27,12 @@
 	<div id="gallery__map" tabindex="1"></div>
 	<div class="gallery__desktop">
 		<div class="gallery__navigation gallery--fadeout" tabindex="1">
+			<h3 data-locale="change_language">
+				Sprache
+			</h3>
+			{{> select type="language" }}
 			<h3 data-locale="change_focus">
-				Fokus ändern
+				Fokus
 			</h3>
 			{{> select type="state" label="Staat" }}
 			{{> select type="city" label="Stadt" }}

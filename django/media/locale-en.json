@@ -1,7 +1,11 @@
 {
+	"meta": {
+		"title": "English"
+	},
+	"change_language": "Language",
+	"change_focus": "Change focus",
 	"state": "State",
 	"city": "Town",
-	"change_focus": "Change focus",
 	"prev": "Previous",
 	"next": "Next",
 	"fullscreen": "Fullscreen",

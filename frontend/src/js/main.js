@@ -41,8 +41,16 @@ const localizeData = (lang) => {
 	if (!lang) {
 		lang = navigator.language || navigator.userLanguage;
 	}
-	let url = 'media/locale-' + lang + '.json';
-	let xhr = new XMLHttpRequest();
+
+	let select = document.querySelector('.gallery__select--language'),
+		url = 'media/locale-' + lang + '.json',
+		xhr = new XMLHttpRequest();
+
+	for (let i = 0; i < select.options.length; i++) {
+		if (select.options[i].value === lang) {
+			select.selectedIndex = i;
+		}
+	}
 	xhr.onload = () => {
 		if(xhr.status === 404) {
 			localizeData('en');
@@ -63,6 +71,33 @@ const localizeData = (lang) => {
 	xhr.open("GET", url);
 	xhr.responseType = 'text';
 	xhr.send();
+};
+
+const fillLanguages = () => {
+	let languages = ['de', 'en'],
+		select = document.querySelector('.gallery__select--language');
+
+	for (let i = 0; i < languages.length; i++) {
+		let xhr = new XMLHttpRequest(),
+			language = languages[i];
+
+		xhr.onload = () => {
+			let data = JSON.parse(xhr.responseText);
+			select.insertAdjacentHTML('beforeend', '<option value="' + language + '">' + data.meta.title + '</option>');
+		};
+		xhr.onerror = () => {
+		  console.log('Error while getting ' + language + ' translation.');
+		};
+		xhr.open("GET", 'media/locale-' + language + '.json');
+		xhr.responseType = 'text';
+		xhr.send();
+	}
+
+	select.addEventListener('change', (event) => {
+		localizeData(event.target.options[event.target.selectedIndex].value);
+	});
+
+	localizeData();
 };
 
 const addMarkerCluster = () => {
@@ -324,7 +359,7 @@ const init = () => {
 	fillSelect('state', 'media/states.json');
 	fillSelect('city', 'media/cities.json');
 	addMarkers();
-	localizeData();
+	fillLanguages();
 };
 
 const enterFullscreen = (element) => {
