@@ -160,7 +160,7 @@ const resizeImageWindow = () => {
 		else {
 			mediaHeight = image.naturalHeight;
 			mediaWidth = image.naturalWidth;
-			image.classList.remove('gallery__image--fadeout');
+			image.classList.remove('gallery--fadeout');
 		}
 
 		let imageHeight = window.innerHeight * scalePercentage / 100,
@@ -172,19 +172,33 @@ const resizeImageWindow = () => {
 		}
 
 		win.style.width = imageWidth + 'px';
-		image.style.height = imageHeight + 'px';
-		image.style.width = imageWidth + 'px';
+		win.style.height = imageHeight + 'px';
 		container.style.width = imageWidth + 'px';
 		container.style.height = imageHeight + 'px';
+		image.style.width = imageWidth + 'px';
+		image.style.height = imageHeight + 'px';
 	}
 };
 
 const addMarkerClick = (marker, data) => {
 	marker.addListener('click', () => {
-		document.querySelector('.gallery__content').classList.add('gallery__image-container');
-		document.querySelector('.gallery__window').classList.remove('gallery__window--hidden');
+		let content = document.querySelector('.gallery__content'),
+			win = document.querySelector('.gallery__window'),
+			controls = win.querySelectorAll('.gallery__control'),
+			buttonDelete = document.querySelector('.gallery__button--delete'),
+			image = document.querySelector('img.gallery__image'),
+			captionText = document.querySelector('.gallery__image-caption-text'),
+			navigation = document.querySelector('.gallery__navigation');
 
-		let controls = document.querySelectorAll('.gallery__control');
+		content.classList.add('gallery__image-container');
+
+		if (win.classList.contains('gallery--fadeout')) {
+			win.classList.remove('gallery--fadeout');
+			content.classList.remove('gallery--fadeout');
+			content.style.backgroundImage = 'none';
+			content.innerHTML = '';
+		}
+
 		for (let i in controls) {
 			let control = controls[i];
 			if (control.classList) {
@@ -193,43 +207,42 @@ const addMarkerClick = (marker, data) => {
 		}
 
 		if (window.location.href.indexOf(':8000') > -1) {
-			document.querySelector('.gallery__button--delete').classList.remove('gallery--hidden');
+			buttonDelete.classList.remove('gallery--hidden');
 		}
 		else {
-			document.querySelector('.gallery__button--delete').classList.add('gallery--hidden');
+			buttonDelete.classList.add('gallery--hidden');
 		}
 
-		let image = document.querySelector('img.gallery__image');
-		let container = document.querySelector('.gallery__content');
+		if (image) {
+			content.style.backgroundImage = 'url(' + image.src + ')';
+		}
+		else {
+			content.style.backgroundImage = 'none';
+		}
 
 		if (marker.contentType === 'photo') {
-			if (image) {
-				container.style.backgroundImage = 'url(' + image.src + ')';
-				container.style.width = image.style.width;
-				container.style.height = image.style.height;
-			}
-			container.innerHTML = '<img class="gallery__image gallery__image--fadeout" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
+			content.innerHTML = '<img class="gallery__image gallery--fadeout" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
 		}
 		else {
-			container.innerHTML = '<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
+			content.innerHTML = '<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
 		}
 
-		let galleryImage = document.querySelector('.gallery__image');
-		galleryImage.addEventListener('touchstart', imageTouchStart);
-		galleryImage.addEventListener('touchend', imageTouchEnd);
+		let media = document.querySelector('.gallery__image');
+		media.addEventListener('touchstart', imageTouchStart);
+		media.addEventListener('touchend', imageTouchEnd);
 
-		document.querySelector('.gallery__image-caption-text').innerHTML = marker.description;
+		captionText.innerHTML = marker.description;
 
 		activeMarker = marker;
 		activeMarkerIndex = marker.index;
 
 		map.panTo(marker.position);
-		document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
+		navigation.classList.add('gallery--fadeout');
 
 		map.setOptions({ keyboardShortcuts: false });
 
-		document.querySelector('.gallery__image').addEventListener('load', resizeImageWindow);
-		document.querySelector('.gallery__image').addEventListener('loadedmetadata', resizeImageWindow);
+		media.addEventListener('load', resizeImageWindow);
+		media.addEventListener('loadedmetadata', resizeImageWindow);
 	});
 };
 
@@ -239,14 +252,14 @@ const fadeControls = () => {
 	for (let i in controls) {
 		let control = controls[i];
 		if (control.classList) {
-			control.classList.remove('gallery__control--fadeout');
+			control.classList.remove('gallery--fadeout');
 		}
 	}
 	timeoutControlFade = window.setTimeout(() => {
 		for (let i in controls) {
 			let control = controls[i];
 			if (control.classList) {
-				control.classList.add('gallery__control--fadeout');
+				control.classList.add('gallery--fadeout');
 			}
 		}
 	}, 3000);
@@ -299,8 +312,6 @@ const addMarkers = () => {
 
 //initialise a map
 const init = () => {
-  document.querySelector('.gallery__navigation').classList.add('gallery--hidden');
-
 	let latlng = new google.maps.LatLng(initialLatitude, initialLongitude),
 		myOptions = {
 			zoom: initialZoom,
@@ -378,21 +389,51 @@ document.querySelector('[data-button="fullscreen"]').addEventListener('click', (
 
 //bind events for close button
 document.querySelector('[data-button="close"]').addEventListener('click', () =>{
+	let win = document.querySelector('.gallery__window'),
+		controls = win.querySelectorAll('.gallery__control'),
+		content = document.querySelector('.gallery__content'),
+		navigation = document.querySelector('.gallery__navigation'),
+		buttonCleanup = document.querySelector('.gallery__button--cleanup'),
+		mapElem = document.getElementById('gallery__map'),
+		media = document.getElementById('gallery__image'),
+		video = document.querySelector('video');
+
 	exitFullscreen();
-	document.querySelector('.gallery__control').classList.add('gallery--hidden');
-	document.querySelector('.gallery__window').classList.add('gallery__window--hidden');
-	document.querySelector('.gallery__content').classList.remove('gallery__image-container');
-	document.querySelector('.gallery__navigation').classList.remove('gallery--hidden');
-	document.querySelector('.gallery__content').style.backgroundImage = 'none';
-	document.querySelector('.gallery__content').innerHTML = '';
+
+	for (let i in controls) {
+		let control = controls[i];
+		if (control.classList) {
+			control.classList.add('gallery--hidden');
+		}
+	}
+
+	win.classList.add('gallery--fadeout');
+	win.style.width = '0px';
+	win.style.height = '0px';
+	content.style.width = '0px';
+	content.style.height = '0px';
+	if (media) {
+		media.style.width = '0px';
+		media.style.height = '0px';
+	}
+	navigation.classList.remove('gallery--fadeout');
+	if (content.classList.contains('gallery__image-container')) {
+		content.classList.remove('gallery__image-container');
+		content.innerHTML = '&nbsp';
+		content.style.backgroundImage = 'none';
+	}
+	else {
+		content.classList.add('gallery--fadeout');
+	}
+
 	if (window.location.href.indexOf(':8000') > -1) {
-		document.querySelector('.gallery__button--cleanup').classList.remove('gallery--hidden');
+		buttonCleanup.classList.remove('gallery--hidden');
 	}
 
 	map.setOptions({ keyboardShortcuts: true });
-	document.getElementById('gallery__map').focus();
+	mapElem.focus();
 
-	stopVideo(document.querySelector('video'));
+	stopVideo(video);
 });
 
 //bind events for prev / next buttons
@@ -526,7 +567,7 @@ for (let i = 0; i < selects.length; i++) {
 }
 
 document.addEventListener('keyup', (event) => {
-	if (document.querySelectorAll('.gallery__window--hidden').length <= 0 && document.querySelectorAll('.gallery__image').length > 0 ) {
+	if (document.querySelectorAll('.gallery__window.gallery--fadeout').length <= 0 && document.querySelectorAll('.gallery__image').length > 0 ) {
 		if (event.keyCode === 37) { // left
 			changeImage('prev');
 		} else if (event.keyCode === 39) { // right
@@ -569,6 +610,17 @@ document.addEventListener('click', fadeControls);
 GoogleMapsLoader.load((g) => {
 	google = g;
 	init();
+});
+
+window.addEventListener('load', () => {
+	let win = document.querySelector('.gallery__window'),
+		content = document.querySelector('.gallery__content'),
+		emSize = parseFloat(getComputedStyle(content).fontSize);
+
+	win.style.width = win.offsetWidth + 'px';
+	win.style.height = win.offsetHeight + 'px';
+	content.style.width = (content.offsetWidth - (emSize * 2)) + 'px';
+	content.style.height = (content.offsetHeight - (emSize * 2)) + 'px';
 });
 
 
