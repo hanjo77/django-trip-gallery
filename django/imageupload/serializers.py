@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User, Group
-from models import Image, State, City, Address
+from models import Image, State, City, Address, CityDescription, StateDescription, Language
 from rest_framework import serializers
 
 
@@ -26,6 +26,28 @@ class CitySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = City
         fields = ('pk', 'name', 'min_latitude', 'min_longitude', 'max_latitude', 'max_longitude', 'state')
+
+
+class LanguageSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Language
+        fields = ('pk', 'code')
+
+
+class StateDescriptionSerializer(serializers.HyperlinkedModelSerializer):
+    state = StateSerializer()
+    language = LanguageSerializer()
+    class Meta:
+        model = StateDescription
+        fields = ('pk', 'language', 'state', 'description')
+
+
+class CityDescriptionSerializer(serializers.HyperlinkedModelSerializer):
+    city = CitySerializer()
+    language = LanguageSerializer()
+    class Meta:
+        model = CityDescription
+        fields = ('pk', 'language', 'city', 'description')
 
 
 class AddressSerializer(serializers.HyperlinkedModelSerializer):

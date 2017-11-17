@@ -98,6 +98,29 @@ class City(models.Model):
     def __unicode__(self):
         return '%s' % (self.name)
 
+class Language(models.Model):
+    code = models.CharField(max_length=8, unique=True)
+    name = models.CharField(max_length=64, unique=True)
+
+    def __unicode__(self):
+        return '%s' % (self.name)
+
+class CityDescription(models.Model):
+    city = models.ForeignKey('City', on_delete=models.CASCADE, null=False, blank=False)
+    language = models.ForeignKey('Language', on_delete=models.CASCADE, null=False, blank=False)
+    description = models.TextField(null=False, blank=False)
+
+    def __unicode__(self):
+        return '%s' % (self.city)
+
+class StateDescription(models.Model):
+    state = models.ForeignKey('State', on_delete=models.CASCADE, null=False, blank=False)
+    language = models.ForeignKey('Language', on_delete=models.CASCADE, null=False, blank=False)
+    description = models.TextField(null=False, blank=False)
+
+    def __unicode__(self):
+        return '%s' % (self.state)
+
 class Address(models.Model):
     name = models.CharField(max_length=255, unique=True)
 

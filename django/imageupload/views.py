@@ -29,9 +29,7 @@ from django.core import serializers
 from django.utils.encoding import force_text
 
 def index(request):
-    return render(request, 'index.html', {
-        'error_message': "You didn't select a choice.",
-    })
+    return render(request, 'index.html')
 
 def locations(request):
     kml = simplekml.Kml()
@@ -214,6 +212,29 @@ def save_json(request):
         full_url = ''.join(['http://', request.META['HTTP_HOST'], '/api/', name])
         stateString = urllib.urlopen(full_url)
         data = json.loads(stateString.read())
+
+        file = open(join(settings.MEDIA_ROOT, name + '.json'), 'w')
+        file.write(json.dumps(data))      
+        file.close() 
+
+    for name in ['state_descriptions', 'city_descriptions']:
+        full_url = ''.join(['http://', request.META['HTTP_HOST'], '/api/', name])
+        stateString = urllib.urlopen(full_url)
+        data = json.loads(stateString.read())
+        for elem in data:
+            elem['language'] = elem['language']['code']
+            obj_type = name.split('_')[0]
+            obj = elem[obj_type]
+            if obj_type == 'city':
+                state = obj['state']
+                state.pop('min_latitude', None)
+                state.pop('max_latitude', None)
+                state.pop('min_longitude', None)
+                state.pop('max_longitude', None)
+            obj.pop('min_latitude', None)
+            obj.pop('max_latitude', None)
+            obj.pop('min_longitude', None)
+            obj.pop('max_longitude', None)
 
         file = open(join(settings.MEDIA_ROOT, name + '.json'), 'w')
         file.write(json.dumps(data))      

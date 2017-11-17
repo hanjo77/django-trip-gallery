@@ -28,6 +28,8 @@ router.register(r'groups', views.GroupViewSet)
 router.register(r'images', views.ImageViewSet)
 router.register(r'states', views.StateViewSet)
 router.register(r'cities', views.CityViewSet)
+router.register(r'state_descriptions', views.StateDescriptionViewSet)
+router.register(r'city_descriptions', views.CityDescriptionViewSet)
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
