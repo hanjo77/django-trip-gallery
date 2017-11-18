@@ -13,7 +13,9 @@ let map,
 	initialLatitude = 38.9284715,
 	initialLongitude = -97.5515638,
 	currentState,
-	currentCity;
+	currentCity,
+	currentLanguage,
+	isSecondSelectFilterCall = false;
 
 let GoogleMapsLoader = require('google-maps');
 GoogleMapsLoader.KEY = 'AIzaSyD_C6GDv2SAhTGc2ijeomtQThYpS761PvU';
@@ -35,6 +37,21 @@ const fillSelect = (type, url) => {
 	xhr.open("GET", url);
 	xhr.responseType = 'text';
 	xhr.send();
+};
+
+const resizeContent = () => {
+	let win = document.querySelector('.gallery__window'),
+		content = document.querySelector('.gallery__content'),
+		emSize = parseFloat(getComputedStyle(content).fontSize);
+
+	win.style.width = 'auto';
+	win.style.height = 'auto';
+	content.style.width = 'auto';
+	content.style.height = 'auto';
+	win.style.width = win.offsetWidth + 'px';
+	win.style.height = win.offsetHeight + 'px';
+	content.style.width = (content.offsetWidth - (emSize * 2)) + 'px';
+	content.style.height = (content.offsetHeight - (emSize * 2)) + 'px';
 };
 
 const localizeData = (lang) => {
@@ -64,14 +81,8 @@ const localizeData = (lang) => {
 				}
 			}
 
-			let win = document.querySelector('.gallery__window'),
-				content = document.querySelector('.gallery__content'),
-				emSize = parseFloat(getComputedStyle(content).fontSize);
-
-			win.style.width = win.offsetWidth + 'px';
-			win.style.height = win.offsetHeight + 'px';
-			content.style.width = (content.offsetWidth - (emSize * 2)) + 'px';
-			content.style.height = (content.offsetHeight - (emSize * 2)) + 'px';
+			currentLanguage = lang;
+			resizeContent();
 		}
 	};
 	xhr.onerror = () => {
@@ -224,24 +235,41 @@ const resizeImageWindow = () => {
 	}
 };
 
-const addMarkerClick = (marker, data) => {
-	marker.addListener('click', () => {
-		let content = document.querySelector('.gallery__content'),
-			win = document.querySelector('.gallery__window'),
-			controls = win.querySelectorAll('.gallery__control'),
-			buttonDelete = document.querySelector('.gallery__button--delete'),
-			image = document.querySelector('img.gallery__image'),
-			captionText = document.querySelector('.gallery__image-caption-text'),
-			navigation = document.querySelector('.gallery__navigation');
+const openWindow = (winContent, doResize) => {
+	let content = document.querySelector('.gallery__content'),
+		win = document.querySelector('.gallery__window'),
+		controls = win.querySelectorAll('.gallery__control'),
+		buttonDelete = document.querySelector('.gallery__button--delete'),
+		buttonClose = document.querySelector('.gallery__button--close'),
+		image = document.querySelector('img.gallery__image'),
+		navigation = document.querySelector('.gallery__navigation');
 
+	buttonClose.classList.remove('gallery--hidden');
+	navigation.classList.add('gallery--fadeout');
+
+	if (win.classList.contains('gallery--fadeout')) {
+		win.classList.remove('gallery--fadeout');
+		content.classList.remove('gallery--fadeout');
+		content.style.backgroundImage = 'none';
+		content.innerHTML = '';
+	}
+
+	if (image) {
+		content.style.backgroundImage = 'url(' + image.src + ')';
+	}
+	else {
+		content.style.backgroundImage = 'none';
+	}
+
+	content.innerHTML = winContent;
+
+	let media = document.querySelector('.gallery__image');
+	if (media) {
 		content.classList.add('gallery__image-container');
-
-		if (win.classList.contains('gallery--fadeout')) {
-			win.classList.remove('gallery--fadeout');
-			content.classList.remove('gallery--fadeout');
-			content.style.backgroundImage = 'none';
-			content.innerHTML = '';
-		}
+		media.addEventListener('touchstart', imageTouchStart);
+		media.addEventListener('touchend', imageTouchEnd);
+		media.addEventListener('load', resizeImageWindow);
+		media.addEventListener('loadedmetadata', resizeImageWindow);
 
 		for (let i in controls) {
 			let control = controls[i];
@@ -256,24 +284,23 @@ const addMarkerClick = (marker, data) => {
 		else {
 			buttonDelete.classList.add('gallery--hidden');
 		}
+	}
 
-		if (image) {
-			content.style.backgroundImage = 'url(' + image.src + ')';
-		}
-		else {
-			content.style.backgroundImage = 'none';
-		}
+	if (doResize) {
+		resizeContent();
+	}
+};
+
+const addMarkerClick = (marker, data) => {
+	marker.addListener('click', () => {
+		let captionText = document.querySelector('.gallery__image-caption-text');
 
 		if (marker.contentType === 'photo') {
-			content.innerHTML = '<img class="gallery__image gallery--fadeout" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
+			openWindow('<img class="gallery__image gallery--fadeout" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
 		}
 		else {
-			content.innerHTML = '<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />';
+			openWindow('<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
 		}
-
-		let media = document.querySelector('.gallery__image');
-		media.addEventListener('touchstart', imageTouchStart);
-		media.addEventListener('touchend', imageTouchEnd);
 
 		captionText.innerHTML = marker.description;
 
@@ -281,12 +308,8 @@ const addMarkerClick = (marker, data) => {
 		activeMarkerIndex = marker.index;
 
 		map.panTo(marker.position);
-		navigation.classList.add('gallery--fadeout');
 
 		map.setOptions({ keyboardShortcuts: false });
-
-		media.addEventListener('load', resizeImageWindow);
-		media.addEventListener('loadedmetadata', resizeImageWindow);
 	});
 };
 
@@ -414,12 +437,93 @@ const getCookie = (name) => {
 	return cookieValue;
 };
 
-function stopVideo(video){
+const stopVideo = (video) => {
 	if (video) {
 		video.pause();
 		video.currentTime = 0;
 	}
-}
+};
+
+const showInfo = (type, id) => {
+	let xhr = new XMLHttpRequest();
+
+	xhr.onload = () => {
+		let data = JSON.parse(xhr.responseText);
+		for (let i = 0; i < data.length; i++) {
+			let item = data[i];
+			if (item[type].pk === id && item.language === currentLanguage) {
+				openWindow('<h1>' + item[type].name + '</h1><p>' + item.description + '</p>', true);
+			}
+		}
+	};
+	xhr.onerror = () => {
+		console.log('Error while getting ' + type + '_descriptions.json.');
+	};
+	xhr.open("GET", 'media/' + type + '_descriptions.json');
+	xhr.responseType = 'text';
+	xhr.send();
+};
+
+const updateSelect = (event) => {
+	try {
+		let data = JSON.parse(event.currentTarget.options[event.currentTarget.selectedIndex].value.split('\'').join('\"'));
+		if (data.state) {
+			showInfo('city', data.pk);
+			isSecondSelectFilterCall = true;
+			currentCity = data.pk;
+			currentState = data.state.pk;
+			document.querySelector('.gallery__select--state [data-id="' + data.state.pk + '"]').selected = true;
+			document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'));
+		}
+		else {
+			if (!isSecondSelectFilterCall) {
+				showInfo('state', data.pk);
+				isSecondSelectFilterCall = false;
+			}
+			let cities = document.querySelectorAll('.gallery__select--city [data-id]');
+			for (let i = 0; i < cities.length; i++) {
+				let city = cities[i];
+				if (city && city.value) {
+					let cityData = JSON.parse(city.value.split('\'').join('\"'));
+					if (cityData.state.pk === data.pk) {
+						city.style.display = 'block';
+					}
+					else {
+						city.style.display = 'none';
+					}
+				}
+			}
+			if (currentState !== data.pk) {
+				document.querySelector('.gallery__select--city').selectedIndex = 0;
+				currentState = data.pk;
+			}
+		}
+		let sw = new google.maps.LatLng(data.max_latitude, data.max_longitude);
+		let ne = new google.maps.LatLng(data.min_latitude, data.min_longitude);
+		new google.maps.LatLngBounds();
+		let bounds = new google.maps.LatLngBounds();
+		bounds.extend(sw);
+		bounds.extend(ne);
+		map.fitBounds(bounds);
+	}
+	catch (e) {
+		if (event.currentTarget.classList.contains('gallery__select--state')) {
+			let cities = document.querySelectorAll('.gallery__select--city [data-id]');
+			for (let i = 0; i < cities.length; i++) {
+				let city = cities[i];
+				city.style.display = 'block';
+			}
+			document.querySelector('.gallery__select--city').selectedIndex = 0;
+			map.setCenter(new google.maps.LatLng(initialLatitude, initialLongitude));
+			map.setZoom(initialZoom);
+			currentState = -1;
+		}
+		else {
+			isSecondSelectFilterCall = true;
+			document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'));
+		}
+	}
+};
 
 //bind events for close button
 document.querySelector('[data-button="fullscreen"]').addEventListener('click', (event) => {
@@ -555,59 +659,10 @@ document.querySelector('.gallery__button--cleanup').addEventListener('click', ()
 let selects = document.querySelectorAll('.gallery__select');
 for (let i = 0; i < selects.length; i++) {
 	let select = selects[i];
-	select.addEventListener('change', (event) => {
-		try {
-			let data = JSON.parse(event.currentTarget.options[event.currentTarget.selectedIndex].value.split('\'').join('\"'));
-			if (data.state) {
-				currentCity = data.pk;
-				currentState = data.state.pk;
-				document.querySelector('.gallery__select--state [data-id="' + data.state.pk + '"]').selected = true;
-				document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'));
-			}
-			else {
-				let cities = document.querySelectorAll('.gallery__select--city [data-id]');
-				for (let i = 0; i < cities.length; i++) {
-					let city = cities[i];
-					if (city && city.value) {
-						let cityData = JSON.parse(city.value.split('\'').join('\"'));
-						if (cityData.state.pk === data.pk) {
-							city.style.display = 'block';
-						}
-						else {
-							city.style.display = 'none';
-						}
-					}
-				}
-				if (currentState !== data.pk) {
-					document.querySelector('.gallery__select--city').selectedIndex = 0;
-					currentState = data.pk;
-				}
-			}
-			let sw = new google.maps.LatLng(data.max_latitude, data.max_longitude);
-			let ne = new google.maps.LatLng(data.min_latitude, data.min_longitude);
-			new google.maps.LatLngBounds();
-			let bounds = new google.maps.LatLngBounds();
-			bounds.extend(sw);
-			bounds.extend(ne);
-			map.fitBounds(bounds);
-		}
-		catch (e) {
-			if (event.currentTarget.classList.contains('gallery__select--state')) {
-				let cities = document.querySelectorAll('.gallery__select--city [data-id]');
-				for (let i = 0; i < cities.length; i++) {
-					let city = cities[i];
-					city.style.display = 'block';
-				}
-				document.querySelector('.gallery__select--city').selectedIndex = 0;
-				map.setCenter(new google.maps.LatLng(initialLatitude, initialLongitude));
-				map.setZoom(initialZoom);
-				currentState = -1;
-			}
-			else {
-				document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'));
-			}
-		}
+	select.addEventListener('mousedown', (event) => {
+		event.currentTarget.selectedIndex = -1;
 	});
+	select.addEventListener('change', updateSelect);
 }
 
 document.addEventListener('keyup', (event) => {
@@ -655,4 +710,3 @@ GoogleMapsLoader.load((g) => {
 	google = g;
 	init();
 });
-
