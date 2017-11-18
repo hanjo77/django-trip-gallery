@@ -14,8 +14,7 @@ let map,
 	initialLongitude = -97.5515638,
 	currentState,
 	currentCity,
-	currentLanguage,
-	isSecondSelectFilterCall = false;
+	currentLanguage;
 
 let GoogleMapsLoader = require('google-maps');
 GoogleMapsLoader.KEY = 'AIzaSyD_C6GDv2SAhTGc2ijeomtQThYpS761PvU';
@@ -93,24 +92,27 @@ const localizeData = (lang) => {
 	xhr.send();
 };
 
+const fillLanguage = (select, language) => {
+	let xhr = new XMLHttpRequest();
+
+	xhr.onload = () => {
+		let data = JSON.parse(xhr.responseText);
+		select.insertAdjacentHTML('beforeend', '<option value="' + language + '">' + data.meta.title + '</option>');
+	};
+	xhr.onerror = () => {
+	  console.log('Error while getting ' + language + ' translation.');
+	};
+	xhr.open("GET", 'media/locale-' + language + '.json');
+	xhr.responseType = 'text';
+	xhr.send();
+};
+
 const fillLanguages = () => {
 	let languages = ['de', 'en'],
 		select = document.querySelector('.gallery__select--language');
 
 	for (let i = 0; i < languages.length; i++) {
-		let xhr = new XMLHttpRequest(),
-			language = languages[i];
-
-		xhr.onload = () => {
-			let data = JSON.parse(xhr.responseText);
-			select.insertAdjacentHTML('beforeend', '<option value="' + language + '">' + data.meta.title + '</option>');
-		};
-		xhr.onerror = () => {
-		  console.log('Error while getting ' + language + ' translation.');
-		};
-		xhr.open("GET", 'media/locale-' + language + '.json');
-		xhr.responseType = 'text';
-		xhr.send();
+		fillLanguage(select, languages[i]);
 	}
 
 	select.addEventListener('change', (event) => {
@@ -152,6 +154,9 @@ const addMarkerCluster = () => {
 };
 
 const changeImage = (direction) => {
+	if (typeof direction === 'object') {
+		direction = direction.currentTarget.dataset.button;
+	}
 	let index = parseInt(document.querySelector('.gallery__image').dataset.id, 10),
 		newIndex = index;
 
@@ -469,17 +474,17 @@ const updateSelect = (event) => {
 		let data = JSON.parse(event.currentTarget.options[event.currentTarget.selectedIndex].value.split('\'').join('\"'));
 		if (data.state) {
 			showInfo('city', data.pk);
-			isSecondSelectFilterCall = true;
 			currentCity = data.pk;
 			currentState = data.state.pk;
 			document.querySelector('.gallery__select--state [data-id="' + data.state.pk + '"]').selected = true;
-			document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'));
+			document.querySelector('.gallery__select--state').dataset.background = true;
+			document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'), 'test');
 		}
 		else {
-			if (!isSecondSelectFilterCall) {
+			if (!document.querySelector('.gallery__select--state').dataset.background) {
 				showInfo('state', data.pk);
-				isSecondSelectFilterCall = false;
 			}
+			delete(document.querySelector('.gallery__select--state').dataset.background);
 			let cities = document.querySelectorAll('.gallery__select--city [data-id]');
 			for (let i = 0; i < cities.length; i++) {
 				let city = cities[i];
@@ -519,8 +524,44 @@ const updateSelect = (event) => {
 			currentState = -1;
 		}
 		else {
-			isSecondSelectFilterCall = true;
 			document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'));
+		}
+	}
+};
+
+const deletePicture = () => {
+	if (window.confirm('Willst du dieses Bild wirklich löschen?')) {
+		let csrftoken = getCookie('csrftoken'),
+			id = document.querySelector('.gallery__window .gallery__image').dataset.pk;
+
+		if (!isNaN(parseInt(id, 10))) {
+			let xhr = new XMLHttpRequest();
+			xhr.onload = () => {
+				window.alert('Bild ' + id + ' wurde gelöscht, wechsle zum nächsten...');
+				// Remove marker from map and from markers array
+				markers[activeMarkerIndex].setMap(null);
+				markers.splice(activeMarkerIndex, 1);
+
+				// Update marker index for all following markers
+				for (let i = activeMarkerIndex; i < markers.length; i++) {
+					markers[i].index = i;
+				}
+
+				// Set back activeMarkerIndex since we will change to the next image which now has the same index as the deleted one
+				activeMarkerIndex -= 1;
+				document.querySelector('.gallery__image').dataset.id = activeMarkerIndex;
+				changeImage('next');
+			};
+			xhr.onerror = () => {
+				window.alert('Bild ' + id + ' konnte nicht gelöscht werden: ID nicht lesbar.');
+			};
+			xhr.open('DELETE', '/api/images/' + id + '/');
+			xhr.responseType = "text";
+			xhr.setRequestHeader("X-CSRFToken", csrftoken);
+			xhr.send();
+		}
+		else {
+			window.alert('Bild ' + id + ' konnte nicht gelöscht werden: ID nicht lesbar.');
 		}
 	}
 };
@@ -589,49 +630,12 @@ let buttons = document.querySelectorAll('.gallery__image-caption .gallery__butto
 for (let i in buttons) {
 	let button = buttons[i];
 	if (button.addEventListener) {
-		button.addEventListener('click', (event) => {
-			changeImage(event.currentTarget.dataset.button);
-		});
+		button.addEventListener('click', changeImage);
 	}
 }
 
 //bind events for delete buttons
-document.querySelector('[data-button="delete"]').addEventListener('click', () => {
-	if (window.confirm('Willst du dieses Bild wirklich löschen?')) {
-		let csrftoken = getCookie('csrftoken'),
-			id = document.querySelector('.gallery__window .gallery__image').dataset.pk;
-
-		if (!isNaN(parseInt(id, 10))) {
-			let xhr = new XMLHttpRequest();
-			xhr.onload = () => {
-				window.alert('Bild ' + id + ' wurde gelöscht, wechsle zum nächsten...');
-				// Remove marker from map and from markers array
-				markers[activeMarkerIndex].setMap(null);
-				markers.splice(activeMarkerIndex, 1);
-
-				// Update marker index for all following markers
-				for (let i = activeMarkerIndex; i < markers.length; i++) {
-					markers[i].index = i;
-				}
-
-				// Set back activeMarkerIndex since we will change to the next image which now has the same index as the deleted one
-				activeMarkerIndex -= 1;
-				document.querySelector('.gallery__image').dataset.id = activeMarkerIndex;
-				changeImage('next');
-			};
-			xhr.onerror = () => {
-				window.alert('Bild ' + id + ' konnte nicht gelöscht werden: ID nicht lesbar.');
-			};
-			xhr.open('DELETE', '/api/images/' + id + '/');
-			xhr.responseType = "text";
-			xhr.setRequestHeader("X-CSRFToken", csrftoken);
-			xhr.send();
-		}
-		else {
-			window.alert('Bild ' + id + ' konnte nicht gelöscht werden: ID nicht lesbar.');
-		}
-	}
-});
+document.querySelector('[data-button="delete"]').addEventListener('click', deletePicture);
 
 document.querySelector('.gallery__button--cleanup').addEventListener('click', () => {
 	let xhr = new XMLHttpRequest(),
