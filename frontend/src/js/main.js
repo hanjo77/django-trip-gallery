@@ -213,6 +213,8 @@ const resizeImageWindow = () => {
 		mediaWidth;
 
 	if (image && win) {
+		container.querySelector('.wait-icon').classList.add('gallery--fadeout');
+
 		if (image.tagName.toLowerCase() === 'video') {
 			mediaHeight = image.videoHeight;
 			mediaWidth = image.videoWidth;
@@ -271,6 +273,12 @@ const openWindow = (winContent, doResize) => {
 	let media = document.querySelector('.gallery__image');
 	if (media) {
 		content.classList.add('gallery__image-container');
+		if (!content.querySelector('.wait-icon')) {
+			content.insertAdjacentHTML('beforeend', '<div class="wait-icon gallery--fadeout"></div>');
+		}
+		if (!media.complete) {
+			content.querySelector('.wait-icon').classList.remove('gallery--fadeout');
+		}
 		media.addEventListener('touchstart', imageTouchStart);
 		media.addEventListener('touchend', imageTouchEnd);
 		media.addEventListener('load', resizeImageWindow);
