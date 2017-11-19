@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
+
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.files import File  # you need this somewhere
 from os import listdir
 from os import environ
 from os import remove
-from os.path import isdir, isfile, join
+from os import makedirs
+from os.path import isdir, isfile, join, abspath, exists, dirname
 from django.db.models import Count, Min, Sum, Avg
 from django.contrib.sites.shortcuts import get_current_site
 
@@ -120,6 +123,34 @@ def import_videos(request):
 
     response = HttpResponse(files)
     return response
+
+def optimize_images(request):
+    images = Image.objects.all();
+    outputpath = 'optimized/'
+    
+    for image in images:
+        try:
+            print image.image
+            if str(image.image).lower().find('.jpg') > 0:
+                new_filename = join(abspath('media'), outputpath, str(image.image))
+                if not exists(new_filename):
+                    img = JpgImage.open(image.image)
+                    wpercent = .5
+                    vsize = int((float(img.size[0]) * float(wpercent)))
+                    hsize = int((float(img.size[1]) * float(wpercent)))
+                    img = img.resize((vsize, hsize), JpgImage.ANTIALIAS)
+                    if not exists(dirname(new_filename)):
+                        try:
+                            makedirs(dirname(new_filename))
+                        except OSError as exc: # Guard against race condition
+                            if exc.errno != errno.EEXIST:
+                                pass
+                    img.save(new_filename)
+        except Exception:
+            print image.image
+            pass
+
+    return HttpResponse('done')
 
 def update_states(request):
     states = State.objects.all()

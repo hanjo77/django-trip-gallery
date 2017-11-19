@@ -4,6 +4,7 @@ import views
 
 urlpatterns = [
     url(r'^import_images$', views.import_images, name='import_images'),
+    url(r'^optimize_images$', views.optimize_images, name='optimize_images'),
     url(r'^cleanup_images$', views.cleanup_images, name='cleanup_images'),
     url(r'^import_videos$', views.import_videos, name='import_videos'),
     url(r'^update_videos$', views.update_videos, name='update_videos'),

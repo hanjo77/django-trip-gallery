@@ -130,3 +130,4 @@ Desktop.ini
 
 # Logs
 npm-debug.log
+django/media/optimized
