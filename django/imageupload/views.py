@@ -8,6 +8,7 @@ from os import environ
 from os import remove
 from os import makedirs
 from os.path import isdir, isfile, join, abspath, exists, dirname
+from shutil import copyfile
 from django.db.models import Count, Min, Sum, Avg
 from django.contrib.sites.shortcuts import get_current_site
 
@@ -125,15 +126,16 @@ def import_videos(request):
     return response
 
 def optimize_images(request):
-    images = Image.objects.all();
+    images = Image.objects.all()
+    img = None
     outputpath = 'optimized/'
-    
+
     for image in images:
         try:
-            print image.image
-            if str(image.image).lower().find('.jpg') > 0:
-                new_filename = join(abspath('media'), outputpath, str(image.image))
-                if not exists(new_filename):
+            new_filename = join(abspath('media'), outputpath, str(image.image))
+            print new_filename
+            if not exists(new_filename):
+                if str(image.image).lower().find('.jpg') > 0:
                     img = JpgImage.open(image.image)
                     wpercent = .5
                     vsize = int((float(img.size[0]) * float(wpercent)))
@@ -146,8 +148,13 @@ def optimize_images(request):
                             if exc.errno != errno.EEXIST:
                                 pass
                     img.save(new_filename)
-        except Exception:
-            print image.image
+                    img.close()
+                    image.image.close()
+                elif str(image.image).lower().find('.m4v') > 0:
+                    copyfile(join(abspath('media'), str(image.image)), new_filename);
+
+        except Exception as ex:
+            print ex
             pass
 
     return HttpResponse('done')
@@ -368,8 +375,10 @@ def import_locations(request):
             image.state = state
             image.title = title
             image.save()
+            image.image.close()
 
             output += "<li><h3>" + title + "</h3>" + address.name + "<br />" + city.name + "<br />" + state.name + "</li>"
+
             time.sleep(0.3)
     output += "</ul>"
 
