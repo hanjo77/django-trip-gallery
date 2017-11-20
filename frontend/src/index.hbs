@@ -41,6 +41,14 @@
 		<div class="gallery__window">
 			{{> button type="fullscreen" hidden=true }}
 			{{> button type="delete" hidden=true }}
+			<div class="gallery__share-wrapper">
+				<div class="gallery__share">
+					{{> button type="mail" }}
+					{{> button type="twitter" }}
+					{{> button type="facebook" }}
+					{{> button type="google-plus" }}
+				</div>
+			</div>
 			{{> button type="close" }}
 			<div class="gallery__content">
 				<h1 data-locale="title"></h1>

@@ -20,7 +20,9 @@ let GoogleMapsLoader = require('google-maps');
 GoogleMapsLoader.KEY = 'AIzaSyD_C6GDv2SAhTGc2ijeomtQThYpS761PvU';
 
 const fillSelect = (type, url) => {
-	let xhr = new XMLHttpRequest();
+	let xhr = new XMLHttpRequest(),
+		hash = window.location.hash.substr(1);
+
 	xhr.onload = () => {
 		let data = JSON.parse(xhr.responseText);
 		let select = document.querySelector('.gallery__select--' + type),
@@ -28,6 +30,10 @@ const fillSelect = (type, url) => {
 		for (let i = 0; i < data.length; i++) {
 			option = data[i];
 			select.insertAdjacentHTML('beforeend', '<option data-id="' + option.pk + '" value="' + JSON.stringify(option).split('\"').join('\'') + '">' + option.name + '</option>');
+			if (option.name === hash) {
+				select.selectedIndex = i + 1;
+				select.dispatchEvent(new Event('change'));
+			}
 		}
 	};
 	xhr.onerror = () => {
@@ -245,7 +251,7 @@ const resizeImageWindow = () => {
 const openWindow = (winContent, doResize) => {
 	let content = document.querySelector('.gallery__content'),
 		win = document.querySelector('.gallery__window'),
-		controls = win.querySelectorAll('.gallery__control'),
+		controls = win.querySelectorAll('.gallery__control:not(.gallery__share)'),
 		buttonDelete = document.querySelector('.gallery__button--delete'),
 		buttonClose = document.querySelector('.gallery__button--close'),
 		image = document.querySelector('img.gallery__image'),
@@ -272,6 +278,8 @@ const openWindow = (winContent, doResize) => {
 
 	let media = document.querySelector('.gallery__image');
 	if (media) {
+		window.location.hash = activeMarkerIndex;
+		updateShareIcons();
 		content.classList.add('gallery__image-container');
 		if (!content.querySelector('.wait-icon')) {
 			content.insertAdjacentHTML('beforeend', '<div class="wait-icon gallery--fadeout"></div>');
@@ -308,17 +316,17 @@ const addMarkerClick = (marker, data) => {
 	marker.addListener('click', () => {
 		let captionText = document.querySelector('.gallery__image-caption-text');
 
+		captionText.innerHTML = marker.description;
+
+		activeMarker = marker;
+		activeMarkerIndex = marker.index;
+
 		if (marker.contentType === 'photo') {
 			openWindow('<img class="gallery__image gallery--fadeout" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
 		}
 		else {
 			openWindow('<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
 		}
-
-		captionText.innerHTML = marker.description;
-
-		activeMarker = marker;
-		activeMarkerIndex = marker.index;
 
 		map.panTo(marker.position);
 
@@ -381,6 +389,11 @@ const addMarkers = () => {
 			markers.push(marker);
 		});
 		addMarkerCluster();
+
+		let hashIndex = parseInt(window.location.hash.substr(1), 10);
+		if (!isNaN(hashIndex) && markers[hashIndex]) {
+			google.maps.event.trigger(markers[hashIndex], 'click');
+		}
 	};
 	xhr.onerror = () => {
 	  console.log('Error while getting media/locations.kml.');
@@ -389,6 +402,26 @@ const addMarkers = () => {
 	xhr.responseType = 'document';
 	xhr.send();
 };
+
+const updateShareIcons = () => {
+	let url = escape('http://hanjo.synology.me/usa-2017' + window.location.hash);
+
+	let twitterIcon = document.querySelector('.gallery__button--twitter');
+	twitterIcon.href = 'https://twitter.com/intent/tweet?text=' + url;
+	twitterIcon.target = 'blank';
+
+	let googleIcon = document.querySelector('.gallery__button--google-plus');
+	googleIcon.href = 'https://plus.google.com/share?url=' + url;
+	googleIcon.target = 'blank';
+
+	let facebookLink = document.querySelector('.gallery__button--facebook');
+	facebookLink.href = 'https://www.facebook.com/sharer/sharer.php?u=' + url;
+	facebookLink.target = 'blank';
+
+	let mailLink = document.querySelector('.gallery__button--mail');
+	mailLink.href = 'mailto:?subject=USA%20by%20rail&body=' + url;
+	mailLink.target = 'blank';
+}
 
 //initialise a map
 const init = () => {
@@ -405,6 +438,7 @@ const init = () => {
 	fillSelect('city', 'media/cities.json');
 	addMarkers();
 	fillLanguages();
+	updateShareIcons('http://hanjo.synology.me/usa-2017');
 };
 
 const enterFullscreen = (element) => {
@@ -480,17 +514,21 @@ const showInfo = (type, id) => {
 const updateSelect = (event) => {
 	try {
 		let data = JSON.parse(event.currentTarget.options[event.currentTarget.selectedIndex].value.split('\'').join('\"'));
+
 		if (data.state) {
 			showInfo('city', data.pk);
+			window.location.hash = event.currentTarget.options[event.currentTarget.selectedIndex].text;
+
 			currentCity = data.pk;
 			currentState = data.state.pk;
 			document.querySelector('.gallery__select--state [data-id="' + data.state.pk + '"]').selected = true;
 			document.querySelector('.gallery__select--state').dataset.background = true;
-			document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'), 'test');
+			document.querySelector('.gallery__select--state').dispatchEvent(new Event('change'));
 		}
 		else {
 			if (!document.querySelector('.gallery__select--state').dataset.background) {
 				showInfo('state', data.pk);
+				window.location.hash = event.currentTarget.options[event.currentTarget.selectedIndex].text;
 			}
 			delete(document.querySelector('.gallery__select--state').dataset.background);
 			let cities = document.querySelectorAll('.gallery__select--city [data-id]');
