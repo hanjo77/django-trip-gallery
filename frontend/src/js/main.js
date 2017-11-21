@@ -14,7 +14,8 @@ let map,
 	initialLongitude = -97.5515638,
 	currentState,
 	currentCity,
-	currentLanguage;
+	currentLanguage,
+	defaultTitle = document.title;
 
 let GoogleMapsLoader = require('google-maps');
 GoogleMapsLoader.KEY = 'AIzaSyD_C6GDv2SAhTGc2ijeomtQThYpS761PvU';
@@ -248,6 +249,35 @@ const resizeImageWindow = () => {
 	}
 };
 
+const updateShareIcons = () => {
+	let domain = 'http://hanjo.synology.me/usa-2017',
+		url = encodeURIComponent(domain + window.location.hash),
+		title = encodeURIComponent(document.title),
+		image = document.querySelector('.gallery__image');
+
+	if (image && image.src) {
+		image = domain + encodeURIComponent(image.src.substr(image.src.indexOf('/media')));
+	}
+
+	let twitterIcon = document.querySelector('.gallery__button--twitter');
+	twitterIcon.addEventListener('click', () => {
+		window.open('https://twitter.com/intent/tweet?text=' + title + ' - ' + url, 'twitter', 'height=400,width=400,resizable=no');
+	});
+
+	let googleIcon = document.querySelector('.gallery__button--google-plus');
+	googleIcon.addEventListener('click', () => {
+		window.open('https://plus.google.com/share?url=' + (image ? image : url), 'twitter', 'height=480,width=400,resizable=no');
+	});
+
+	let facebookLink = document.querySelector('.gallery__button--facebook');
+	facebookLink.addEventListener('click', () => {
+		window.open('https://www.facebook.com/sharer/sharer.php?u=' + (image ? image : url), 'facebook', 'height=400,width=400,resizable=no');
+	});
+
+	let mailLink = document.querySelector('.gallery__button--mail');
+	mailLink.href = 'mailto:?subject=USA%20on%20rails&body=' + title + encodeURIComponent('\n\n') + url;
+};
+
 const openWindow = (winContent, doResize) => {
 	let content = document.querySelector('.gallery__content'),
 		win = document.querySelector('.gallery__window'),
@@ -315,6 +345,8 @@ const openWindow = (winContent, doResize) => {
 const addMarkerClick = (marker, data) => {
 	marker.addListener('click', () => {
 		let captionText = document.querySelector('.gallery__image-caption-text');
+
+		document.title = [data.title, data.city, data.state].join(', ');
 
 		captionText.innerHTML = marker.description;
 
@@ -402,26 +434,6 @@ const addMarkers = () => {
 	xhr.responseType = 'document';
 	xhr.send();
 };
-
-const updateShareIcons = () => {
-	let url = escape('http://hanjo.synology.me/usa-2017' + window.location.hash);
-
-	let twitterIcon = document.querySelector('.gallery__button--twitter');
-	twitterIcon.href = 'https://twitter.com/intent/tweet?text=' + url;
-	twitterIcon.target = 'blank';
-
-	let googleIcon = document.querySelector('.gallery__button--google-plus');
-	googleIcon.href = 'https://plus.google.com/share?url=' + url;
-	googleIcon.target = 'blank';
-
-	let facebookLink = document.querySelector('.gallery__button--facebook');
-	facebookLink.href = 'https://www.facebook.com/sharer/sharer.php?u=' + url;
-	facebookLink.target = 'blank';
-
-	let mailLink = document.querySelector('.gallery__button--mail');
-	mailLink.href = 'mailto:?subject=USA%20by%20rail&body=' + url;
-	mailLink.target = 'blank';
-}
 
 //initialise a map
 const init = () => {
@@ -612,7 +624,7 @@ const deletePicture = () => {
 	}
 };
 
-//bind events for close button
+//bind events for fullscreen button
 document.querySelector('[data-button="fullscreen"]').addEventListener('click', (event) => {
 	if (event.currentTarget.classList.contains('gallery__button--fullscreen')) {
 		enterFullscreen(document.querySelector('.gallery__window'));
@@ -641,6 +653,9 @@ document.querySelector('[data-button="close"]').addEventListener('click', () =>{
 			control.classList.add('gallery--hidden');
 		}
 	}
+
+	window.location.hash = '';
+	document.title = defaultTitle;
 
 	win.classList.add('gallery--fadeout');
 	win.style.width = '0px';
