@@ -15,7 +15,8 @@ let map,
 	currentState,
 	currentCity,
 	currentLanguage,
-	defaultTitle = document.title;
+	defaultTitle = document.title,
+	languages = ['de', 'en'];
 
 let GoogleMapsLoader = require('google-maps');
 GoogleMapsLoader.KEY = 'AIzaSyD_C6GDv2SAhTGc2ijeomtQThYpS761PvU';
@@ -63,6 +64,10 @@ const resizeContent = () => {
 const localizeData = (lang) => {
 	if (!lang) {
 		lang = navigator.language || navigator.userLanguage;
+		let hash = window.location.hash.substr(1);
+		if (languages.includes(hash)) {
+			lang = hash;
+		}
 	}
 
 	let select = document.querySelector('.gallery__select--language'),
@@ -220,6 +225,9 @@ const resizeImageWindow = () => {
 		mediaWidth;
 
 	if (image && win) {
+		container.style.backgroundImage = 'url(' + image.src + ')';
+		image.style.opacity = 1;
+
 		container.querySelector('.wait-icon').classList.add('gallery--fadeout');
 
 		if (image.tagName.toLowerCase() === 'video') {
@@ -250,14 +258,17 @@ const resizeImageWindow = () => {
 };
 
 const updateShareIcons = () => {
-	let domain = 'http://hanjo.synology.me/usa-2017',
-		url = encodeURIComponent(domain + window.location.hash),
+	let url = window.location.href,
+		docRoot = url.substr(0, url.lastIndexOf('/')),
 		title = encodeURIComponent(document.title),
-		image = document.querySelector('.gallery__image');
+		image = document.querySelector('.gallery__image'),
+		imageUrl = null;
 
 	if (image && image.src) {
-		image = domain + encodeURIComponent(image.src.substr(image.src.indexOf('/media')));
+		imageUrl = docRoot + image.src.substr(image.src.indexOf('/media'));
 	}
+
+	url = encodeURIComponent(url + window.location.hash);
 
 	let twitterIcon = document.querySelector('.gallery__button--twitter');
 	twitterIcon.addEventListener('click', () => {
@@ -266,12 +277,12 @@ const updateShareIcons = () => {
 
 	let googleIcon = document.querySelector('.gallery__button--google-plus');
 	googleIcon.addEventListener('click', () => {
-		window.open('https://plus.google.com/share?url=' + (image ? image : url), 'twitter', 'height=480,width=400,resizable=no');
+		window.open('https://plus.google.com/share?url=' + (imageUrl ? imageUrl : url), 'twitter', 'height=480,width=400,resizable=no');
 	});
 
 	let facebookLink = document.querySelector('.gallery__button--facebook');
 	facebookLink.addEventListener('click', () => {
-		window.open('https://www.facebook.com/sharer/sharer.php?u=' + (image ? image : url), 'facebook', 'height=400,width=400,resizable=no');
+		window.open('https://www.facebook.com/sharer/sharer.php?u=' + (imageUrl ? imageUrl : url), 'facebook', 'height=400,width=400,resizable=no');
 	});
 
 	let mailLink = document.querySelector('.gallery__button--mail');
@@ -293,15 +304,6 @@ const openWindow = (winContent, doResize) => {
 	if (win.classList.contains('gallery--fadeout')) {
 		win.classList.remove('gallery--fadeout');
 		content.classList.remove('gallery--fadeout');
-		content.style.backgroundImage = 'none';
-		content.innerHTML = '';
-	}
-
-	if (image) {
-		content.style.backgroundImage = 'url(' + image.src + ')';
-	}
-	else {
-		content.style.backgroundImage = 'none';
 	}
 
 	content.innerHTML = winContent;
@@ -312,10 +314,7 @@ const openWindow = (winContent, doResize) => {
 		updateShareIcons();
 		content.classList.add('gallery__image-container');
 		if (!content.querySelector('.wait-icon')) {
-			content.insertAdjacentHTML('beforeend', '<div class="wait-icon gallery--fadeout"></div>');
-		}
-		if (!media.complete) {
-			content.querySelector('.wait-icon').classList.remove('gallery--fadeout');
+			content.insertAdjacentHTML('beforeend', '<div class="wait-icon"></div>');
 		}
 		media.addEventListener('touchstart', imageTouchStart);
 		media.addEventListener('touchend', imageTouchEnd);
@@ -450,7 +449,7 @@ const init = () => {
 	fillSelect('city', 'media/cities.json');
 	addMarkers();
 	fillLanguages();
-	updateShareIcons('http://hanjo.synology.me/usa-2017');
+	updateShareIcons();
 };
 
 const enterFullscreen = (element) => {
@@ -642,7 +641,7 @@ document.querySelector('[data-button="close"]').addEventListener('click', () =>{
 		navigation = document.querySelector('.gallery__navigation'),
 		buttonCleanup = document.querySelector('.gallery__button--cleanup'),
 		mapElem = document.getElementById('gallery__map'),
-		media = document.getElementById('gallery__image'),
+		media = document.querySelector('.gallery__image'),
 		video = document.querySelector('video');
 
 	exitFullscreen();
@@ -669,8 +668,6 @@ document.querySelector('[data-button="close"]').addEventListener('click', () =>{
 	navigation.classList.remove('gallery--fadeout');
 	if (content.classList.contains('gallery__image-container')) {
 		content.classList.remove('gallery__image-container');
-		content.innerHTML = '&nbsp';
-		content.style.backgroundImage = 'none';
 	}
 	else {
 		content.classList.add('gallery--fadeout');
