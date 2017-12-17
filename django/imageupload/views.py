@@ -46,6 +46,8 @@ def locations(request):
         image['image'] = image['image'].replace(domain, '')
         image.pop('url', None)
         data = json.dumps(image)
+        if image['mute']:
+            image['image'] = image['image'] + '#muted'
 
         kml.newpoint(
             name = image['image'],

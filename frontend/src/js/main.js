@@ -225,8 +225,9 @@ const resizeImageWindow = () => {
 		mediaWidth;
 
 	if (image && win) {
-		container.style.backgroundImage = 'url(' + image.src + ')';
-		image.style.opacity = 1;
+		window.setTimeout(function() {
+			container.style.backgroundImage = 'url(' + image.src + ')';
+		}, 1000);
 
 		container.querySelector('.wait-icon').classList.add('gallery--fadeout');
 
@@ -294,6 +295,7 @@ const openWindow = (winContent, doResize) => {
 		win = document.querySelector('.gallery__window'),
 		controls = win.querySelectorAll('.gallery__control:not(.gallery__share)'),
 		buttonDelete = document.querySelector('.gallery__button--delete'),
+		buttonMute = document.querySelector('.gallery__button--mute, .gallery__button--unmute'),
 		buttonClose = document.querySelector('.gallery__button--close'),
 		image = document.querySelector('img.gallery__image'),
 		navigation = document.querySelector('.gallery__navigation');
@@ -310,6 +312,7 @@ const openWindow = (winContent, doResize) => {
 
 	let media = document.querySelector('.gallery__image');
 	if (media) {
+		media.classList.add('gallery--visible');
 		window.location.hash = activeMarkerIndex;
 		updateShareIcons();
 		content.classList.add('gallery__image-container');
@@ -330,9 +333,23 @@ const openWindow = (winContent, doResize) => {
 
 		if (window.location.href.indexOf(':8000') > -1) {
 			buttonDelete.classList.remove('gallery--hidden');
+
+			if (media.classList.contains('gallery__video')) {
+				media = document.querySelector('.gallery__video');
+
+				if (media.hasAttribute('muted')) {
+					buttonMute.classList.remove('gallery__button--mute');
+					buttonMute.classList.add('gallery__button--unmute');
+				}
+				buttonMute.classList.remove('gallery--hidden');
+			}
+			else {
+				buttonMute.classList.add('gallery--hidden');
+			}
 		}
 		else {
 			buttonDelete.classList.add('gallery--hidden');
+			buttonMute.classList.add('gallery--hidden');
 		}
 	}
 
@@ -356,7 +373,7 @@ const addMarkerClick = (marker, data) => {
 			openWindow('<img class="gallery__image gallery--fadeout" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
 		}
 		else {
-			openWindow('<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
+			openWindow('<video controls ' + (marker.url.indexOf('#muted') > -1 ? 'muted ' : '') + 'autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
 		}
 
 		map.panTo(marker.position);
@@ -586,6 +603,45 @@ const updateSelect = (event) => {
 	}
 };
 
+const muteVideo = () => {
+	let csrftoken = getCookie('csrftoken'),
+		video = document.querySelector('.gallery__window .gallery__video'),
+		buttonMute = document.querySelector('.gallery__window .gallery__button--mute'),
+		buttonUnmute = document.querySelector('.gallery__window .gallery__button--unmute'),
+		id = video.dataset.pk;
+
+	if (!isNaN(parseInt(id, 10))) {
+		let xhr = new XMLHttpRequest();
+		xhr.onload = () => {
+			if (video.muted) {
+				video.muted = false;
+				video.volume = 1;
+				buttonUnmute.classList.add('gallery__button--mute');
+				buttonUnmute.classList.remove('gallery__button--unmute');
+			}
+			else {
+				video.muted = true;
+				buttonMute.classList.remove('gallery__button--mute');
+				buttonMute.classList.add('gallery__button--unmute');
+			}
+		};
+		xhr.onerror = () => {
+			window.alert('Video ' + id + ' konnte nicht gemuted werden: ID nicht lesbar.');
+		};
+		let data = JSON.stringify({
+			mute: (buttonMute ? true : false)
+		});
+		xhr.open('PATCH', '/api/images/' + id + '/');
+		xhr.responseType = 'text';
+		xhr.setRequestHeader('Content-type', 'application/json');
+		xhr.setRequestHeader('X-CSRFToken', csrftoken);
+		xhr.send(data);
+	}
+	else {
+		window.alert('Video ' + id + ' konnte nicht gemuted werden: ID nicht lesbar.');
+	}
+}
+
 const deletePicture = () => {
 	if (window.confirm('Willst du dieses Bild wirklich löschen?')) {
 		let csrftoken = getCookie('csrftoken'),
@@ -694,6 +750,7 @@ for (let i in buttons) {
 
 //bind events for delete buttons
 document.querySelector('[data-button="delete"]').addEventListener('click', deletePicture);
+document.querySelector('[data-button="mute"]').addEventListener('click', muteVideo);
 
 document.querySelector('.gallery__button--cleanup').addEventListener('click', () => {
 	let xhr = new XMLHttpRequest(),
@@ -701,9 +758,9 @@ document.querySelector('.gallery__button--cleanup').addEventListener('click', ()
 		defaultText = 'Daten bereinigen';
 
 	xhr.onload = () => {
-		window.alert('Daten bereinigt.');
 		button.removeAttribute('disabled');
 		button.innerHTML = defaultText;
+		window.location.reload(true);
 	};
 	xhr.onerror = () => {
 		window.alert('Fehler beim Bereinigen der Bilder.');

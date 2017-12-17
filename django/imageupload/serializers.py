@@ -62,7 +62,7 @@ class ImageSerializer(serializers.HyperlinkedModelSerializer):
     address = serializers.StringRelatedField()
     class Meta:
         model = Image
-        fields = ('pk', 'url', 'image', 'title', 'latitude', 'longitude', 'state', 'city', 'address')
+        fields = ('pk', 'url', 'image', 'title', 'latitude', 'longitude', 'state', 'city', 'address', 'mute')
 
 
 

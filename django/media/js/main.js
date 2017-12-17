@@ -297,8 +297,9 @@ var resizeImageWindow = function resizeImageWindow() {
 	    mediaWidth = void 0;
 
 	if (image && win) {
-		container.style.backgroundImage = 'url(' + image.src + ')';
-		image.style.opacity = 1;
+		window.setTimeout(function () {
+			container.style.backgroundImage = 'url(' + image.src + ')';
+		}, 1000);
 
 		container.querySelector('.wait-icon').classList.add('gallery--fadeout');
 
@@ -365,6 +366,7 @@ var openWindow = function openWindow(winContent, doResize) {
 	    win = document.querySelector('.gallery__window'),
 	    controls = win.querySelectorAll('.gallery__control:not(.gallery__share)'),
 	    buttonDelete = document.querySelector('.gallery__button--delete'),
+	    buttonMute = document.querySelector('.gallery__button--mute, .gallery__button--unmute'),
 	    buttonClose = document.querySelector('.gallery__button--close'),
 	    image = document.querySelector('img.gallery__image'),
 	    navigation = document.querySelector('.gallery__navigation');
@@ -381,6 +383,7 @@ var openWindow = function openWindow(winContent, doResize) {
 
 	var media = document.querySelector('.gallery__image');
 	if (media) {
+		media.classList.add('gallery--visible');
 		window.location.hash = activeMarkerIndex;
 		updateShareIcons();
 		content.classList.add('gallery__image-container');
@@ -401,8 +404,21 @@ var openWindow = function openWindow(winContent, doResize) {
 
 		if (window.location.href.indexOf(':8000') > -1) {
 			buttonDelete.classList.remove('gallery--hidden');
+
+			if (media.classList.contains('gallery__video')) {
+				media = document.querySelector('.gallery__video');
+
+				if (media.hasAttribute('muted')) {
+					buttonMute.classList.remove('gallery__button--mute');
+					buttonMute.classList.add('gallery__button--unmute');
+				}
+				buttonMute.classList.remove('gallery--hidden');
+			} else {
+				buttonMute.classList.add('gallery--hidden');
+			}
 		} else {
 			buttonDelete.classList.add('gallery--hidden');
+			buttonMute.classList.add('gallery--hidden');
 		}
 	}
 
@@ -425,7 +441,7 @@ var addMarkerClick = function addMarkerClick(marker, data) {
 		if (marker.contentType === 'photo') {
 			openWindow('<img class="gallery__image gallery--fadeout" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
 		} else {
-			openWindow('<video controls autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
+			openWindow('<video controls ' + (marker.url.indexOf('#muted') > -1 ? 'muted ' : '') + 'autoplay class="gallery__image gallery__video" data-pk="' + data.pk + '" data-id="' + marker.index + '" src="' + marker.url + '" />');
 		}
 
 		map.panTo(marker.position);
@@ -646,6 +662,43 @@ var updateSelect = function updateSelect(event) {
 	}
 };
 
+var muteVideo = function muteVideo() {
+	var csrftoken = getCookie('csrftoken'),
+	    video = document.querySelector('.gallery__window .gallery__video'),
+	    buttonMute = document.querySelector('.gallery__window .gallery__button--mute'),
+	    buttonUnmute = document.querySelector('.gallery__window .gallery__button--unmute'),
+	    id = video.dataset.pk;
+
+	if (!isNaN(parseInt(id, 10))) {
+		var xhr = new XMLHttpRequest();
+		xhr.onload = function () {
+			if (video.muted) {
+				video.muted = false;
+				video.volume = 1;
+				buttonUnmute.classList.add('gallery__button--mute');
+				buttonUnmute.classList.remove('gallery__button--unmute');
+			} else {
+				video.muted = true;
+				buttonMute.classList.remove('gallery__button--mute');
+				buttonMute.classList.add('gallery__button--unmute');
+			}
+		};
+		xhr.onerror = function () {
+			window.alert('Video ' + id + ' konnte nicht gemuted werden: ID nicht lesbar.');
+		};
+		var data = JSON.stringify({
+			mute: buttonMute ? true : false
+		});
+		xhr.open('PATCH', '/api/images/' + id + '/');
+		xhr.responseType = 'text';
+		xhr.setRequestHeader('Content-type', 'application/json');
+		xhr.setRequestHeader('X-CSRFToken', csrftoken);
+		xhr.send(data);
+	} else {
+		window.alert('Video ' + id + ' konnte nicht gemuted werden: ID nicht lesbar.');
+	}
+};
+
 var deletePicture = function deletePicture() {
 	if (window.confirm('Willst du dieses Bild wirklich löschen?')) {
 		var csrftoken = getCookie('csrftoken'),
@@ -751,6 +804,7 @@ for (var i in buttons) {
 
 //bind events for delete buttons
 document.querySelector('[data-button="delete"]').addEventListener('click', deletePicture);
+document.querySelector('[data-button="mute"]').addEventListener('click', muteVideo);
 
 document.querySelector('.gallery__button--cleanup').addEventListener('click', function () {
 	var xhr = new XMLHttpRequest(),
@@ -758,9 +812,9 @@ document.querySelector('.gallery__button--cleanup').addEventListener('click', fu
 	    defaultText = 'Daten bereinigen';
 
 	xhr.onload = function () {
-		window.alert('Daten bereinigt.');
 		button.removeAttribute('disabled');
 		button.innerHTML = defaultText;
+		window.location.reload(true);
 	};
 	xhr.onerror = function () {
 		window.alert('Fehler beim Bereinigen der Bilder.');

@@ -66,6 +66,7 @@ class Image(models.Model):
     address = models.ForeignKey('Address', on_delete=models.CASCADE, null=True, blank=True)
     city = models.ForeignKey('City', on_delete=models.CASCADE, null=True, blank=True)
     state = models.ForeignKey('State', on_delete=models.CASCADE, null=True, blank=True)
+    mute = models.BooleanField(default=False)
 
     def save(self):
         exif = get_exif_location(exifread.process_file(self.image.file, details=False))
