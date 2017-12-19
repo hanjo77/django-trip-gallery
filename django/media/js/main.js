@@ -366,6 +366,7 @@ var openWindow = function openWindow(winContent, doResize) {
 	    win = document.querySelector('.gallery__window'),
 	    controls = win.querySelectorAll('.gallery__control:not(.gallery__share)'),
 	    buttonDelete = document.querySelector('.gallery__button--delete'),
+	    buttonRotate = document.querySelector('.gallery__button--rotate'),
 	    buttonMute = document.querySelector('.gallery__button--mute, .gallery__button--unmute'),
 	    buttonClose = document.querySelector('.gallery__button--close'),
 	    image = document.querySelector('img.gallery__image'),
@@ -406,6 +407,7 @@ var openWindow = function openWindow(winContent, doResize) {
 			buttonDelete.classList.remove('gallery--hidden');
 
 			if (media.classList.contains('gallery__video')) {
+				buttonRotate.classList.add('gallery--hidden');
 				media = document.querySelector('.gallery__video');
 
 				if (media.hasAttribute('muted')) {
@@ -414,6 +416,7 @@ var openWindow = function openWindow(winContent, doResize) {
 				}
 				buttonMute.classList.remove('gallery--hidden');
 			} else {
+				buttonRotate.classList.remove('gallery--hidden');
 				buttonMute.classList.add('gallery--hidden');
 			}
 		} else {
@@ -699,6 +702,27 @@ var muteVideo = function muteVideo() {
 	}
 };
 
+var rotateImage = function rotateImage(event) {
+	var csrftoken = getCookie('csrftoken'),
+	    image = document.querySelector('.gallery__image'),
+	    xhr = new XMLHttpRequest(),
+	    id = image.dataset.pk;
+	xhr.onload = function () {
+		var url = image.src;
+		if (image.src.indexOf('?') > -1) {
+			url = url.substr(0, image.src.indexOf('?'));
+		}
+		image.src = url + '?' + new Date().getTime();
+	};
+	xhr.onerror = function () {
+		window.alert('Bild ' + id + ' konnte nicht gedreht werden: ID nicht lesbar.');
+	};
+	xhr.open('GET', '/turn_image/' + id);
+	xhr.responseType = "text";
+	xhr.setRequestHeader("X-CSRFToken", csrftoken);
+	xhr.send();
+};
+
 var deletePicture = function deletePicture() {
 	if (window.confirm('Willst du dieses Bild wirklich löschen?')) {
 		var csrftoken = getCookie('csrftoken'),
@@ -804,6 +828,7 @@ for (var i in buttons) {
 
 //bind events for delete buttons
 document.querySelector('[data-button="delete"]').addEventListener('click', deletePicture);
+document.querySelector('[data-button="rotate"]').addEventListener('click', rotateImage);
 document.querySelector('[data-button="mute"]').addEventListener('click', muteVideo);
 
 document.querySelector('.gallery__button--cleanup').addEventListener('click', function () {

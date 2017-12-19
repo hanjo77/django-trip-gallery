@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^update_cities$', views.update_cities, name='update_cities'),
     url(r'^save_json$', views.save_json, name='save_json'),
     url(r'^locations\.kml$', views.locations, name='locations'),
+    url(r'^turn_image/(?P<imageid>.*)$', views.turn_image, name='turn_image'),
     url(r'^$', views.index, name='index'),
 ]
 

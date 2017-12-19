@@ -127,6 +127,17 @@ def import_videos(request):
     response = HttpResponse(files)
     return response
 
+def turn_image(request, imageid):
+    path = "images"
+    image = Image.objects.filter(pk = imageid)
+    img = JpgImage.open(image[0].image)
+    img2 = img.rotate(-90)
+    mediaPath = join(settings.MEDIA_ROOT, str(image[0].image))
+    img2.save(mediaPath)
+
+    response = HttpResponse('done')
+    return response
+
 def optimize_images(request):
     images = Image.objects.all()
     img = None
